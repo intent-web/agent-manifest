@@ -235,6 +235,28 @@ AgentManifest can support gradual adoption:
 A website can become understandable to agents before it allows agents to perform
 state-changing actions.
 
+## Example Manifests
+
+This repository includes a growing library of draft manifests under
+[`examples/`](./examples/):
+
+- [`examples/base/`](./examples/base/) for a default vendor-neutral business
+  website.
+- [`examples/wordpress/`](./examples/wordpress/) for WordPress core and
+  WordPress commerce plugins such as WooCommerce, Easy Digital Downloads,
+  SureCart, WP EasyCart and MemberPress.
+- [`examples/ecommerce/`](./examples/ecommerce/) for stores such as PrestaShop,
+  Magento/Adobe Commerce, Shopify, OpenCart, Shopware, BigCommerce and Sylius.
+- [`examples/cms/`](./examples/cms/) for CMS and headless CMS platforms such as
+  Drupal, Joomla, TYPO3, Ghost, Strapi and Contentful.
+- [`examples/frameworks/`](./examples/frameworks/) for web frameworks and stacks
+  such as Vue, React/Vite, Angular, Nuxt, Next.js, SvelteKit, PHP, Laravel,
+  Django, Rails, Express, Spring Boot, ASP.NET Blazor and ASP.NET MVC.
+
+Each example is structured so implementation notes, OpenAPI files, MCP adapters,
+catalog exports, policies and validation reports can be added next to the
+manifest later.
+
 ## Relationship to Existing Web Standards
 
 AgentManifest is inspired by existing web conventions but serves a different

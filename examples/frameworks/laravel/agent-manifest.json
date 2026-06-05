@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "laravel-site",
+  "status": "example",
+  "templateKind": "framework-laravel",
+  "identity": {"name": "Example Laravel App", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "php-web-framework", "stack": ["laravel", "php", "blade-or-inertia", "eloquent"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Define manifest routes outside auth-only route groups.", "Generate capability metadata from routes, form requests, policies and resources."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent/manifest"], "llmContext": ["/llms.txt", "/ai/laravel/site-summary.txt"], "openapi": "/agent/openapi.json", "mcp": "/agent/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/laravel/routes.json", "refresh": "on deploy"},
+    {"id": "resources", "type": "resource-catalog", "source": "/ai/laravel/resources.json", "refresh": "on deploy"},
+    {"id": "policies", "type": "policy", "source": "/ai/laravel/policies.json", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "search-public-data", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["route", "openapi"], "audit": ["query"]},
+    {"id": "submit-form-request", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["controller", "form-request"], "audit": ["input_summary", "user_confirmation"]},
+    {"id": "execute-domain-command", "intent": "execute_business_command", "risk": "high", "stateChange": true, "requiresConsent": true, "protocols": ["controller", "job"], "audit": ["command", "input_summary", "explicit_confirmation"]}
+  ],
+  "policies": {"consent": "State-changing routes require confirmation and may dispatch auditable jobs.", "auth": "Gate and policy requirements must be reflected in capability metadata.", "dataMinimization": "Do not expose hidden model fields, config secrets or admin routes.", "audit": "Use events, jobs or dedicated audit tables for agent actions."},
+  "extensionPoints": ["laravel-package.md", "route-introspection.json", "policy-mapping.json", "agent-audit-events.md"]
+}
+

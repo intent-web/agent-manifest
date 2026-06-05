@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "wordpress-memberpress-membership-site",
+  "status": "example",
+  "templateKind": "wordpress-membership-commerce",
+  "identity": {"name": "Example Membership Site", "domain": "example.com", "owner": "Example Publisher", "contact": "members@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "wordpress-membership-plugin", "stack": ["wordpress", "memberpress", "php", "mysql"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Separate public marketing content from protected member content.", "Treat membership purchases, cancellations and access changes as high or critical risk."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/memberships/plans.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "knowledge": [
+    {"id": "plans", "type": "membership-plan-catalog", "source": "/ai/memberships/plans.json", "refresh": "on plan update"},
+    {"id": "public-content", "type": "content-catalog", "source": "/ai/memberships/public-content.json", "refresh": "on publish"},
+    {"id": "terms", "type": "policy", "source": "/membership-terms", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "compare-memberships", "intent": "compare_membership_plans", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["plan_ids"]},
+    {"id": "check-access-requirements", "intent": "check_content_access_requirements", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["wordpress-rest"], "audit": ["content_id"]},
+    {"id": "prepare-membership-signup", "intent": "prepare_membership_signup", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["plan_summary", "user_confirmation"]},
+    {"id": "start-membership", "intent": "start_paid_membership", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["plan", "billing_terms", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Paid membership start requires explicit approval of price, billing interval and cancellation terms.", "auth": "Protected content and account actions require authenticated member context.", "dataMinimization": "Do not expose protected content in public knowledge catalogs.", "audit": "Membership starts, cancellations and access changes require audit records."},
+  "extensionPoints": ["membership-plan-schema.json", "memberpress-openapi.json", "protected-content-policy.json", "billing-consent-policy.json"]
+}

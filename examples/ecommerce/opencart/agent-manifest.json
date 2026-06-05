@@ -1,0 +1,23 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "opencart-store",
+  "status": "example",
+  "templateKind": "ecommerce-opencart",
+  "identity": {"name": "Example OpenCart Store", "domain": "example.com", "owner": "Example Merchant", "contact": "orders@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "self-hosted-ecommerce", "stack": ["opencart", "php", "mysql", "extensions"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Implement manifests through an extension or static export.", "Route state-changing actions through an extension controller with policy checks."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/index.php?route=extension/agent_layer/manifest"], "llmContext": ["/llms.txt", "/ai/opencart/catalog-summary.txt"], "openapi": "/index.php?route=extension/agent_layer/openapi", "mcp": "/index.php?route=extension/agent_layer/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "product-catalog", "source": "/ai/opencart/products.json", "refresh": "on product update"},
+    {"id": "categories", "type": "category-catalog", "source": "/ai/opencart/categories.json", "refresh": "on category update"},
+    {"id": "shipping-payment", "type": "commerce-policy", "source": "/ai/opencart/checkout-policy.json", "refresh": "on extension setting change"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "opencart-extension-api"], "audit": ["query"]},
+    {"id": "estimate-total", "intent": "estimate_order_total", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["agent-action-gateway"], "audit": ["items", "destination"]},
+    {"id": "prepare-cart", "intent": "prepare_cart_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["cart_summary", "user_confirmation"]},
+    {"id": "place-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Orders require explicit approval of complete checkout summary.", "auth": "Customer account and order history actions require authentication.", "dataMinimization": "Only expose enabled products and public option values.", "audit": "Record agent action id, cart summary and user approval for checkout actions."},
+  "extensionPoints": ["opencart-extension.md", "opencart-openapi.json", "option-normalization.json", "checkout-audit-schema.json"]
+}
+

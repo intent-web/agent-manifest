@@ -1,0 +1,23 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "wordpress-wp-easycart-store",
+  "status": "example",
+  "templateKind": "wordpress-commerce",
+  "identity": {"name": "Example WP EasyCart Store", "domain": "example.com", "owner": "Example Merchant", "contact": "orders@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "wordpress-ecommerce-plugin", "stack": ["wordpress", "wp-easycart", "php", "mysql"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Normalize product, shipping and tax data into agent-readable catalogs.", "Use an action gateway for cart and checkout operations."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/easycart/catalog-summary.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "product-catalog", "source": "/ai/easycart/products.json", "refresh": "on product update"},
+    {"id": "tax-shipping", "type": "commerce-policy", "source": "/ai/easycart/tax-shipping.json", "refresh": "on setting change"},
+    {"id": "returns", "type": "policy", "source": "/returns", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "wordpress-rest"], "audit": ["query"]},
+    {"id": "calculate-total", "intent": "calculate_total_cost", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["agent-action-gateway"], "audit": ["cart_items", "destination_region"]},
+    {"id": "prepare-cart", "intent": "prepare_cart_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["cart_summary", "user_confirmation"]},
+    {"id": "place-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Order placement requires explicit approval of item list, shipping, tax and total.", "auth": "Customer-specific order history requires authentication.", "dataMinimization": "Expose inventory and pricing only for public, purchasable products.", "audit": "Critical checkout actions require durable audit entries."},
+  "extensionPoints": ["easycart-openapi.json", "cart-total-schema.json", "shipping-policy.json", "checkout-policy.json"]
+}
+

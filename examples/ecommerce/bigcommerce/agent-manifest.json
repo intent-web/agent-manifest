@@ -1,0 +1,23 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "bigcommerce-store",
+  "status": "example",
+  "templateKind": "ecommerce-bigcommerce",
+  "identity": {"name": "Example BigCommerce Store", "domain": "example.com", "owner": "Example Merchant", "contact": "commerce@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "hosted-ecommerce", "stack": ["bigcommerce", "stencil-or-headless", "storefront-api", "app"], "integrationMode": "static-or-runtime", "servingNotes": ["Publish manifest through storefront assets, headless frontend or app integration.", "Use an app/runtime for governed cart and checkout actions."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/apps/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/bigcommerce/catalog-summary.txt"], "openapi": "/apps/agent-layer/openapi.json", "mcp": "/apps/agent-layer/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "product-catalog", "source": "/ai/bigcommerce/products.json", "refresh": "on catalog webhook"},
+    {"id": "categories", "type": "category-catalog", "source": "/ai/bigcommerce/categories.json", "refresh": "on catalog webhook"},
+    {"id": "storefront-policy", "type": "policy", "source": "/ai/bigcommerce/storefront-policy.json", "refresh": "on setting change"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["storefront-api", "static"], "audit": ["query"]},
+    {"id": "check-product-options", "intent": "validate_product_options", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["storefront-api"], "audit": ["product_id", "options"]},
+    {"id": "prepare-checkout", "intent": "prepare_checkout_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["checkout_summary", "user_confirmation"]},
+    {"id": "complete-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["hosted-checkout", "agent-action-gateway"], "audit": ["order_summary", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Checkout requires item, option, shipping, tax, discount and total review before purchase.", "auth": "Customer group pricing and account data require authentication.", "dataMinimization": "Do not expose app tokens, private customer data or admin API routes.", "audit": "Critical checkout actions require app-side audit storage."},
+  "extensionPoints": ["bigcommerce-app.md", "storefront-api-mapping.md", "checkout-policy.json", "catalog-webhook-policy.json"]
+}
+

@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "plain-php-site",
+  "status": "example",
+  "templateKind": "framework-php",
+  "identity": {"name": "Example PHP Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "server-rendered-website", "stack": ["php", "apache-or-nginx", "mysql-optional"], "integrationMode": "static-or-bridge", "servingNotes": ["Serve manifest through a static file or a PHP endpoint with application/json content type.", "Keep action handlers separate from public content discovery."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.php"], "llmContext": ["/llms.txt", "/ai/php/site-summary.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "knowledge": [
+    {"id": "pages", "type": "page-catalog", "source": "/ai/php/pages.json", "refresh": "on deploy"},
+    {"id": "services", "type": "service-catalog", "source": "/ai/php/services.json", "refresh": "on deploy"},
+    {"id": "forms", "type": "form-catalog", "source": "/ai/php/forms.json", "refresh": "on deploy"}
+  ],
+  "capabilities": [
+    {"id": "search-pages", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "php-json-endpoint"], "audit": ["query"]},
+    {"id": "request-offer", "intent": "request_commercial_offer", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["php-action-gateway"], "audit": ["input_summary", "user_confirmation", "timestamp"]},
+    {"id": "book-consultation-request", "intent": "request_booking_followup", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["php-action-gateway"], "audit": ["requested_slot", "input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Any POST action that submits user data requires confirmation.", "auth": "Admin panels and session-only routes must not be listed as public capabilities.", "dataMinimization": "Do not expose database credentials, session IDs or server paths.", "audit": "Persist agent submissions with request id and sanitized input summary."},
+  "extensionPoints": ["php-action-gateway.md", "apache-nginx-routing.md", "form-schema.json", "csrf-policy.json"]
+}
+

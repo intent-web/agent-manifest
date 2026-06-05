@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "express-node-site",
+  "status": "example",
+  "templateKind": "framework-express-node",
+  "identity": {"name": "Example Express Site", "domain": "example.com", "owner": "Example Organization", "contact": "api@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "node-web-framework", "stack": ["node.js", "express", "templates-or-api"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Expose manifest through express.static or an explicit JSON route.", "Keep agent action routes separate from generic browser endpoints."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent/manifest"], "llmContext": ["/llms.txt", "/ai/express/site-summary.txt"], "openapi": "/agent/openapi.json", "mcp": "/agent/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/express/routes.json", "refresh": "on deploy"},
+    {"id": "public-data", "type": "data-catalog", "source": "/agent/public-data", "refresh": "daily"},
+    {"id": "forms", "type": "form-catalog", "source": "/ai/express/forms.json", "refresh": "on deploy"}
+  ],
+  "capabilities": [
+    {"id": "search-public-data", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["express-route", "static"], "audit": ["query"]},
+    {"id": "submit-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["express-route"], "audit": ["input_summary", "user_confirmation"]},
+    {"id": "trigger-workflow", "intent": "start_business_workflow", "risk": "high", "stateChange": true, "requiresConsent": true, "protocols": ["express-route", "queue"], "audit": ["workflow", "input_summary", "explicit_confirmation"]}
+  ],
+  "policies": {"consent": "POST/PATCH/DELETE agent routes require risk-based confirmation.", "auth": "Middleware authentication and authorization must be represented in capability metadata.", "dataMinimization": "Do not expose environment variables, internal route handlers or secrets.", "audit": "Use structured logs with request id and user confirmation for state-changing routes."},
+  "extensionPoints": ["express-middleware.md", "route-registry.json", "openapi-generator.md", "queue-audit-policy.json"]
+}
+

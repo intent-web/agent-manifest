@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "spring-boot-site",
+  "status": "example",
+  "templateKind": "framework-spring-boot",
+  "identity": {"name": "Example Spring Boot App", "domain": "example.com", "owner": "Example Organization", "contact": "api@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "java-web-framework", "stack": ["spring-boot", "spring-mvc-or-webflux", "spring-security", "openapi-optional"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Serve manifest from static resources or a controller endpoint.", "Map Spring Security authorities and method security to capability rules."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent/manifest"], "llmContext": ["/llms.txt", "/ai/spring/site-summary.txt"], "openapi": "/v3/api-docs/agent", "mcp": "/agent/mcp"},
+  "knowledge": [
+    {"id": "controllers", "type": "route-catalog", "source": "/ai/spring/controllers.json", "refresh": "on deploy"},
+    {"id": "public-data", "type": "data-catalog", "source": "/agent/public-data", "refresh": "daily"},
+    {"id": "security", "type": "policy", "source": "/ai/spring/security-policy.json", "refresh": "on security policy change"}
+  ],
+  "capabilities": [
+    {"id": "query-public-data", "intent": "query_public_application_data", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["controller", "openapi"], "audit": ["query"]},
+    {"id": "submit-request", "intent": "submit_business_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["controller", "openapi"], "audit": ["input_summary", "user_confirmation"]},
+    {"id": "execute-command", "intent": "execute_business_command", "risk": "high", "stateChange": true, "requiresConsent": true, "protocols": ["controller", "service"], "audit": ["command", "input_summary", "explicit_confirmation"]}
+  ],
+  "policies": {"consent": "State-changing commands require confirmation and may require re-authentication.", "auth": "Spring Security roles, scopes and method security must map to capability metadata.", "dataMinimization": "Do not expose actuator secrets, internal beans or private configuration.", "audit": "Use structured application events or audit tables for state-changing agent actions."},
+  "extensionPoints": ["spring-controller.md", "spring-security-mapping.json", "agent-openapi-profile.json", "audit-event-schema.json"]
+}
+

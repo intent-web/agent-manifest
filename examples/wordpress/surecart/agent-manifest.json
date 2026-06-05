@@ -1,0 +1,23 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "wordpress-surecart-store",
+  "status": "example",
+  "templateKind": "wordpress-commerce",
+  "identity": {"name": "Example SureCart Store", "domain": "example.com", "owner": "Example Merchant", "contact": "sales@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "wordpress-ecommerce-plugin", "stack": ["wordpress", "surecart", "php", "hosted-commerce-services"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Keep hosted checkout boundaries explicit.", "Represent subscriptions, trials and one-time purchases as distinct capabilities."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/surecart/products.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "commerce-catalog", "source": "/ai/surecart/products.json", "refresh": "on product update"},
+    {"id": "subscription-terms", "type": "policy", "source": "/subscription-terms", "refresh": "on policy change"},
+    {"id": "checkout-policy", "type": "policy", "source": "/ai/surecart/checkout-policy.json", "refresh": "on checkout setting change"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products_or_plans", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "wordpress-rest"], "audit": ["query"]},
+    {"id": "compare-plans", "intent": "compare_subscription_plans", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["plan_ids"]},
+    {"id": "create-checkout-session", "intent": "prepare_checkout_session", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["checkout_summary", "user_confirmation"]},
+    {"id": "confirm-subscription", "intent": "start_subscription", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["hosted-checkout"], "audit": ["plan", "trial", "renewal_terms", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Subscription start requires explicit approval of price, renewal interval, trial length and cancellation terms.", "auth": "Customer portal actions require authenticated customer context.", "dataMinimization": "Do not expose payment identifiers or hosted checkout secrets.", "audit": "Subscription starts and cancellations require audit records."},
+  "extensionPoints": ["surecart-openapi.json", "subscription-policy.json", "checkout-session-schema.json", "customer-portal-policy.json"]
+}
+

@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "django-site",
+  "status": "example",
+  "templateKind": "framework-django",
+  "identity": {"name": "Example Django Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "python-web-framework", "stack": ["django", "python", "templates-or-drf", "orm"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Serve manifest through staticfiles or a JSON view.", "Generate capability metadata from URL patterns, serializers, forms and permissions."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent/manifest"], "llmContext": ["/llms.txt", "/ai/django/site-summary.txt"], "openapi": "/agent/openapi.json", "mcp": "/agent/mcp"},
+  "knowledge": [
+    {"id": "urls", "type": "route-catalog", "source": "/ai/django/urls.json", "refresh": "on deploy"},
+    {"id": "models", "type": "public-model-catalog", "source": "/ai/django/models.json", "refresh": "on deploy"},
+    {"id": "forms", "type": "form-catalog", "source": "/ai/django/forms.json", "refresh": "on deploy"}
+  ],
+  "capabilities": [
+    {"id": "search-public-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["view", "drf", "static"], "audit": ["query"]},
+    {"id": "submit-form", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["view", "drf"], "audit": ["form_id", "input_summary", "user_confirmation"]},
+    {"id": "start-workflow", "intent": "start_business_workflow", "risk": "high", "stateChange": true, "requiresConsent": true, "protocols": ["view", "celery-task"], "audit": ["workflow_type", "input_summary", "explicit_confirmation"]}
+  ],
+  "policies": {"consent": "POST actions require confirmation; high-risk workflows may require re-authentication.", "auth": "Django permissions and DRF permission classes must map to capability exposure.", "dataMinimization": "Do not expose secret settings, staff routes or private model fields.", "audit": "Use structured logging or audit models for state-changing actions."},
+  "extensionPoints": ["django-app.md", "drf-openapi-profile.json", "permission-mapping.json", "celery-audit-policy.md"]
+}
+

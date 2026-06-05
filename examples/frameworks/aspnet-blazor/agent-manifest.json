@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "aspnet-blazor-site",
+  "status": "example",
+  "templateKind": "framework-aspnet-blazor",
+  "identity": {"name": "Example Blazor App", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "dotnet-web-app", "stack": ["asp.net-core", "blazor-server-or-webassembly", "minimal-api-optional"], "integrationMode": "static-or-runtime", "servingNotes": ["For Blazor WebAssembly, include manifest files in wwwroot.", "For Blazor Server, serve manifest through static files or a minimal API endpoint before fallback routing."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/blazor/app-summary.txt"], "openapi": "/swagger/agent-openapi.json", "mcp": "/ai/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/blazor/routes.json", "refresh": "on build"},
+    {"id": "components", "type": "ui-capability-catalog", "source": "/ai/blazor/components.json", "refresh": "on build"},
+    {"id": "policies", "type": "policy", "source": "/ai/blazor/policies.json", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "read-app-summary", "intent": "understand_application", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["request_id"]},
+    {"id": "query-public-data", "intent": "query_public_application_data", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["minimal-api", "openapi"], "audit": ["query"]},
+    {"id": "submit-workflow-request", "intent": "start_business_workflow", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["minimal-api", "controller-action"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Workflow actions require explicit confirmation.", "auth": "User-specific Blazor circuits, claims and account data require authenticated context.", "dataMinimization": "Do not expose connection strings, circuit identifiers or server-only configuration.", "audit": "Use application logging or a dedicated audit store for state-changing actions."},
+  "extensionPoints": ["blazor-routing.md", "minimal-api-openapi.json", "auth-policy.json", "wwwroot-static-files.md"]
+}
+

@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "angular-site",
+  "status": "example",
+  "templateKind": "framework-angular",
+  "identity": {"name": "Example Angular Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "frontend-framework", "stack": ["angular", "typescript", "static-hosting-or-ssr"], "integrationMode": "static-or-bridge", "servingNotes": ["Emit manifest files into browser assets during build.", "Configure server rewrites so agent files bypass the Angular app fallback."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/angular/site-summary.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/angular/routes.json", "refresh": "on build"},
+    {"id": "content", "type": "content-catalog", "source": "/ai/angular/content.json", "refresh": "on build"},
+    {"id": "forms", "type": "form-catalog", "source": "/ai/angular/forms.json", "refresh": "on build"}
+  ],
+  "capabilities": [
+    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["query"]},
+    {"id": "read-route", "intent": "read_public_route_summary", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["route"]},
+    {"id": "submit-form", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["backend-api", "serverless-function"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Form submissions require confirmation.", "auth": "Authenticated API calls require delegated user auth.", "dataMinimization": "Do not include Angular environment secrets or internal build metadata.", "audit": "Backend APIs must audit state-changing actions."},
+  "extensionPoints": ["angular-builder.md", "rewrite-config.md", "forms-catalog.json", "backend-openapi.json"]
+}
+

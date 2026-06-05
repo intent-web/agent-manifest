@@ -1,0 +1,46 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "default-business-website",
+  "status": "example",
+  "templateKind": "default",
+  "identity": {
+    "name": "Example Organization",
+    "domain": "example.com",
+    "owner": "Example Organization Ltd.",
+    "contact": "support@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "generic-website",
+    "stack": ["html", "cms-or-custom-backend"],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Serve the manifest as a real static file, not as a visual web page.",
+      "Keep public knowledge and state-changing actions separated."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"],
+    "llmContext": ["/llms.txt", "/llms-full.txt"],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
+  "knowledge": [
+    {"id": "site-summary", "type": "summary", "source": "/llms.txt", "refresh": "on deploy"},
+    {"id": "public-pages", "type": "catalog", "source": "/ai/catalog/pages.json", "refresh": "daily"},
+    {"id": "policies", "type": "policy", "source": "/ai/policies.json", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "read-site-summary", "intent": "understand_organization", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["request_id"]},
+    {"id": "search-public-content", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "openapi"], "audit": ["query", "result_count"]},
+    {"id": "request-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["openapi"], "audit": ["input_summary", "user_confirmation", "timestamp"]}
+  ],
+  "policies": {
+    "consent": "Consent must be tied to a specific capability, input summary, user and timestamp.",
+    "auth": "Public read capabilities do not require authentication. State-changing capabilities may require additional validation.",
+    "dataMinimization": "Collect only fields required for the selected capability.",
+    "audit": "Store enough metadata to reconstruct what the agent submitted and what the user approved."
+  },
+  "extensionPoints": ["openapi.json", "mcp-server.example.json", "catalog.example.json", "policy.example.json"]
+}
+

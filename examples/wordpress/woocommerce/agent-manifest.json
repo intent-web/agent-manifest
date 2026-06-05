@@ -1,0 +1,31 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "wordpress-woocommerce-store",
+  "status": "example",
+  "templateKind": "wordpress-commerce",
+  "identity": {"name": "Example WooCommerce Store", "domain": "example.com", "owner": "Example Merchant", "contact": "shop@example.com", "jurisdiction": "TODO"},
+  "platform": {
+    "type": "wordpress-ecommerce-plugin",
+    "stack": ["wordpress", "woocommerce", "php", "mysql"],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Generate product knowledge from published, purchasable products only.",
+      "Treat checkout, payment, refunds and order placement as critical capabilities."
+    ]
+  },
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/woocommerce/catalog-summary.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "product-catalog", "source": "/wp-json/wc/store/v1/products", "refresh": "on product update"},
+    {"id": "shipping-zones", "type": "fulfillment-policy", "source": "/ai/woocommerce/shipping.json", "refresh": "on shipping setting change"},
+    {"id": "returns", "type": "policy", "source": "/returns", "refresh": "on policy change"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["woocommerce-store-api", "static"], "audit": ["query", "filters"]},
+    {"id": "check-availability", "intent": "check_product_availability", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["woocommerce-store-api"], "audit": ["product_id", "quantity"]},
+    {"id": "prepare-cart", "intent": "prepare_cart_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["cart_summary", "user_confirmation"]},
+    {"id": "place-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "payment_method", "explicit_approval", "timestamp"]}
+  ],
+  "policies": {"consent": "Cart preparation and order placement must show item, quantity, taxes, shipping, discounts and total before approval.", "auth": "Customer-specific prices, addresses and previous orders require customer authentication.", "dataMinimization": "Do not expose unpublished products or private customer data.", "audit": "Critical order actions require immutable audit entries."},
+  "extensionPoints": ["woocommerce-openapi.json", "cart-policy.json", "payment-risk-policy.json", "fulfillment-catalog.json"]
+}
+

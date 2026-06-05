@@ -1,0 +1,23 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "magento-adobe-commerce-store",
+  "status": "example",
+  "templateKind": "ecommerce-magento-adobe-commerce",
+  "identity": {"name": "Example Magento Store", "domain": "example.com", "owner": "Example Merchant", "contact": "commerce@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "enterprise-ecommerce", "stack": ["magento", "adobe-commerce", "php", "mysql", "elasticsearch-or-opensearch"], "integrationMode": "runtime", "servingNotes": ["Use store-view aware manifests for multi-store deployments.", "Never expose admin REST or GraphQL mutations directly to agents."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/rest/V1/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/magento/catalog-summary.txt"], "openapi": "/rest/V1/agent-layer/openapi.json", "mcp": "/rest/V1/agent-layer/mcp"},
+  "knowledge": [
+    {"id": "catalog", "type": "product-catalog", "source": "/ai/magento/catalog.json", "refresh": "on index refresh"},
+    {"id": "store-views", "type": "storefront-context", "source": "/ai/magento/store-views.json", "refresh": "on configuration change"},
+    {"id": "commerce-rules", "type": "commerce-policy", "source": "/ai/magento/commerce-rules.json", "refresh": "on rule update"}
+  ],
+  "capabilities": [
+    {"id": "search-catalog", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["graphql", "static"], "audit": ["query", "store_view"]},
+    {"id": "check-fitment-or-options", "intent": "validate_product_configuration", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["graphql", "openapi"], "audit": ["sku", "selected_options"]},
+    {"id": "estimate-cart", "intent": "estimate_cart_total", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["agent-action-gateway"], "audit": ["cart_summary", "destination"]},
+    {"id": "submit-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["quote_id", "order_summary", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Order submission must include store view, currency, items, shipping, tax, discounts and grand total.", "auth": "Customer-specific carts, prices, wishlists and orders require authenticated customer context.", "dataMinimization": "Public catalogs must omit cost, supplier and admin attributes.", "audit": "Critical order actions require correlation with Magento quote and order identifiers."},
+  "extensionPoints": ["magento-graphql-mapping.md", "adobe-commerce-openapi.json", "store-view-policy.json", "quote-audit-schema.json"]
+}
+

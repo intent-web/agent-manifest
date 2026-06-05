@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "react-vite-site",
+  "status": "example",
+  "templateKind": "framework-react-vite",
+  "identity": {"name": "Example React Vite Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "frontend-framework", "stack": ["react", "vite", "static-hosting-or-spa"], "integrationMode": "static", "servingNotes": ["Generate manifest files into dist during Vite build.", "Configure SPA fallback exceptions for /.well-known and /ai paths."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/react/site-summary.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/react/routes.json", "refresh": "on build"},
+    {"id": "content", "type": "content-catalog", "source": "/ai/react/content.json", "refresh": "on build"},
+    {"id": "components", "type": "ui-capability-catalog", "source": "/ai/react/components.json", "refresh": "on build"}
+  ],
+  "capabilities": [
+    {"id": "read-route-summary", "intent": "understand_public_route", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["route"]},
+    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["query"]},
+    {"id": "submit-lead", "intent": "submit_lead_or_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["serverless-function", "external-api"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Lead or contact submissions require confirmation.", "auth": "Authenticated APIs require delegated user auth and must not be implied by static manifest data.", "dataMinimization": "Do not expose Vite private environment values or internal build metadata.", "audit": "Backend or serverless handlers must audit state-changing actions."},
+  "extensionPoints": ["vite-plugin-react.md", "spa-fallback-policy.md", "component-capability-catalog.json", "serverless-openapi.json"]
+}
+

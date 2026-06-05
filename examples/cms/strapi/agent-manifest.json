@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "strapi-headless-cms",
+  "status": "example",
+  "templateKind": "headless-cms-strapi",
+  "identity": {"name": "Example Strapi Content API", "domain": "example.com", "owner": "Example Organization", "contact": "api@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "headless-cms", "stack": ["strapi", "node.js", "rest-or-graphql", "frontend"], "integrationMode": "static-or-runtime", "servingNotes": ["Publish a manifest on the public web frontend and optionally on the content API origin.", "Expose only public content types and fields allowed by Strapi roles and permissions."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/api/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/strapi/content-summary.txt"], "openapi": "/api/agent-layer/openapi.json", "mcp": "/api/agent-layer/mcp"},
+  "knowledge": [
+    {"id": "content-types", "type": "content-model-catalog", "source": "/ai/strapi/content-types.json", "refresh": "on schema change"},
+    {"id": "entries", "type": "content-catalog", "source": "/api/agent-layer/public-entries", "refresh": "on publish"},
+    {"id": "locales", "type": "localization-context", "source": "/ai/strapi/locales.json", "refresh": "on locale change"}
+  ],
+  "capabilities": [
+    {"id": "search-public-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["rest", "graphql", "static"], "audit": ["query", "content_type"]},
+    {"id": "read-entry", "intent": "read_public_content_entry", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["rest", "graphql"], "audit": ["entry_id", "locale"]},
+    {"id": "submit-lead", "intent": "submit_lead_or_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Lead submission requires user confirmation.", "auth": "Draft, preview and editorial operations require authenticated roles.", "dataMinimization": "Public manifest must omit private fields and admin role metadata.", "audit": "State-changing custom endpoints require structured audit logs."},
+  "extensionPoints": ["strapi-plugin.md", "content-type-export.json", "role-permission-policy.json", "frontend-discovery.md"]
+}
+

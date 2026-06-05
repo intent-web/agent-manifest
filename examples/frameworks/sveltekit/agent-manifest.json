@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "sveltekit-site",
+  "status": "example",
+  "templateKind": "framework-sveltekit",
+  "identity": {"name": "Example SvelteKit Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "ssr-or-static-framework", "stack": ["sveltekit", "svelte", "adapter-static-or-node"], "integrationMode": "static-or-runtime", "servingNotes": ["Static adapters should emit manifest files into the output root.", "SSR adapters can expose manifest and OpenAPI through server endpoints."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json", "/api/agent/manifest"], "llmContext": ["/llms.txt", "/ai/sveltekit/site-summary.txt"], "openapi": "/api/agent/openapi.json", "mcp": "/api/agent/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/sveltekit/routes.json", "refresh": "on build"},
+    {"id": "content", "type": "content-catalog", "source": "/ai/sveltekit/content.json", "refresh": "on build"},
+    {"id": "actions", "type": "form-action-catalog", "source": "/ai/sveltekit/actions.json", "refresh": "on build"}
+  ],
+  "capabilities": [
+    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "endpoint"], "audit": ["query"]},
+    {"id": "submit-form-action", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["form-action", "endpoint"], "audit": ["form_id", "input_summary", "user_confirmation"]},
+    {"id": "request-offer", "intent": "request_commercial_offer", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["endpoint"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "SvelteKit form actions that submit data require confirmation.", "auth": "Session-specific load data and private endpoints require authentication.", "dataMinimization": "Do not expose private environment values or server-only modules.", "audit": "State-changing endpoints should write audit records."},
+  "extensionPoints": ["sveltekit-adapter-policy.md", "endpoint-openapi.json", "form-actions-policy.json", "static-output-policy.md"]
+}
+

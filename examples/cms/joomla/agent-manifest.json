@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "joomla-site",
+  "status": "example",
+  "templateKind": "cms-joomla",
+  "identity": {"name": "Example Joomla Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "cms", "stack": ["joomla", "php", "mysql", "components", "modules"], "integrationMode": "static-or-bridge", "servingNotes": ["Generate public catalogs from published articles, categories, menus and selected components.", "Expose agent capabilities through a component or static export."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/index.php?option=com_agentlayer&task=manifest"], "llmContext": ["/llms.txt", "/ai/joomla/content-summary.txt"], "openapi": "/index.php?option=com_agentlayer&task=openapi", "mcp": "/index.php?option=com_agentlayer&task=mcp"},
+  "knowledge": [
+    {"id": "articles", "type": "content-catalog", "source": "/ai/joomla/articles.json", "refresh": "on article publish"},
+    {"id": "categories", "type": "taxonomy-catalog", "source": "/ai/joomla/categories.json", "refresh": "on category update"},
+    {"id": "menus", "type": "navigation-catalog", "source": "/ai/joomla/menus.json", "refresh": "on menu update"}
+  ],
+  "capabilities": [
+    {"id": "search-articles", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "joomla-component"], "audit": ["query"]},
+    {"id": "read-article", "intent": "read_public_article", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["joomla-component"], "audit": ["article_id"]},
+    {"id": "submit-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["joomla-component"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Contact submissions require explicit confirmation.", "auth": "Backend, unpublished and ACL-restricted resources require authenticated context.", "dataMinimization": "Do not publish private menu items, unpublished articles or extension secrets.", "audit": "Log form submissions with agent request id and user confirmation."},
+  "extensionPoints": ["joomla-component.md", "content-export-schema.json", "contact-adapter.md", "acl-policy.json"]
+}
+

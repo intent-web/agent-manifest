@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "sylius-store",
+  "status": "example",
+  "templateKind": "ecommerce-sylius",
+  "identity": {"name": "Example Sylius Store", "domain": "example.com", "owner": "Example Merchant", "contact": "commerce@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "headless-or-custom-commerce", "stack": ["sylius", "symfony", "php", "api-platform"], "integrationMode": "runtime", "servingNotes": ["Use channel-aware manifests for different markets, currencies or locales.", "Prefer API Platform/OpenAPI exposure through a dedicated agent layer resource."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/api/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/sylius/catalog-summary.txt"], "openapi": "/api/agent-layer/openapi.json", "mcp": "/api/agent-layer/mcp"},
+  "knowledge": [
+    {"id": "products", "type": "product-catalog", "source": "/ai/sylius/products.json", "refresh": "on product update"},
+    {"id": "channels", "type": "storefront-context", "source": "/ai/sylius/channels.json", "refresh": "on channel update"},
+    {"id": "promotions", "type": "commerce-policy", "source": "/ai/sylius/promotions.json", "refresh": "on promotion update"}
+  ],
+  "capabilities": [
+    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["api-platform", "static"], "audit": ["query", "channel"]},
+    {"id": "calculate-order", "intent": "calculate_order_total", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["agent-action-gateway"], "audit": ["items", "channel", "address_region"]},
+    {"id": "prepare-checkout", "intent": "prepare_checkout_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["checkout_summary", "user_confirmation"]},
+    {"id": "complete-checkout", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "explicit_approval"]}
+  ],
+  "policies": {"consent": "Order placement requires explicit approval of channel, currency, shipping, tax, promotions and total.", "auth": "Customer identity, address book and order history require authentication.", "dataMinimization": "Public catalogs must omit internal costs and unpublished channel assignments.", "audit": "Persist channel-aware audit records for every state-changing agent action."},
+  "extensionPoints": ["sylius-api-platform.md", "channel-policy.json", "checkout-state-machine-policy.json", "sylius-openapi.json"]
+}

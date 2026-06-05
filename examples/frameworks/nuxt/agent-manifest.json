@@ -1,0 +1,22 @@
+{
+  "agentManifestVersion": "0.1-draft",
+  "id": "nuxt-site",
+  "status": "example",
+  "templateKind": "framework-nuxt",
+  "identity": {"name": "Example Nuxt Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
+  "platform": {"type": "vue-ssr-framework", "stack": ["nuxt", "vue", "nitro", "server-routes"], "integrationMode": "static-or-runtime", "servingNotes": ["For static generation, emit manifests into public output.", "For SSR/Nitro, serve manifest via server route before fallback handling."]},
+  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json", "/api/agent/manifest"], "llmContext": ["/llms.txt", "/llms-full.txt"], "openapi": "/api/agent/openapi.json", "mcp": "/api/agent/mcp"},
+  "knowledge": [
+    {"id": "routes", "type": "route-catalog", "source": "/ai/nuxt/routes.json", "refresh": "on build"},
+    {"id": "content", "type": "content-catalog", "source": "/ai/nuxt/content.json", "refresh": "on build or content update"},
+    {"id": "server-routes", "type": "api-catalog", "source": "/ai/nuxt/server-routes.json", "refresh": "on build"}
+  ],
+  "capabilities": [
+    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "nitro-route"], "audit": ["query"]},
+    {"id": "submit-form", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["nitro-route"], "audit": ["form_id", "input_summary", "user_confirmation"]},
+    {"id": "request-offer", "intent": "request_commercial_offer", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["nitro-route"], "audit": ["input_summary", "user_confirmation"]}
+  ],
+  "policies": {"consent": "Server routes that submit user data require confirmation.", "auth": "Private runtime config and authenticated endpoints must not be public capabilities.", "dataMinimization": "Do not expose private runtime config or server-only plugin state.", "audit": "State-changing Nitro routes should write audit records."},
+  "extensionPoints": ["nuxt-module.md", "nitro-route-openapi.json", "static-generation-policy.md", "runtime-config-policy.json"]
+}
+
