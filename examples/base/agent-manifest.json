@@ -1,4 +1,5 @@
 {
+  "$schema": "./agent-manifest.schema.json",
   "agentManifestVersion": "0.1-draft",
   "id": "default-business-website",
   "status": "example",
@@ -43,4 +44,3 @@
   },
   "extensionPoints": ["openapi.json", "mcp-server.example.json", "catalog.example.json", "policy.example.json"]
 }
-

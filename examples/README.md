@@ -55,6 +55,12 @@ that exposes:
 - a medium-risk contact request capability that requires user confirmation,
 - basic consent, authentication, data minimization and audit rules.
 
+The base folder also contains
+[`base/agent-manifest.schema.json`](./base/agent-manifest.schema.json), a draft
+JSON Schema for the `0.1-draft` manifest shape. The base manifest references it
+through `$schema`, so editors and validators can use it as the initial contract
+for future examples.
+
 Use it when designing a new platform template or when a site does not fit a
 specific CMS or framework yet.
 
@@ -119,4 +125,3 @@ Add these files next to a platform manifest as the project matures:
 - `policy.example.json` for risk, consent and audit rules.
 - `validation-report.example.json` for CI output.
 - `adapter.md` or `plugin.md` for platform-specific implementation notes.
-

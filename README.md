@@ -20,13 +20,13 @@ before the agent starts guessing, scraping, clicking buttons or filling forms.**
 
 AgentManifest is one part of the broader IntentWeb concept:
 
-| Layer | Purpose | Repository |
-| --- | --- | --- |
-| **IntentWeb** | The vision: an AI-native layer of the Internet built around user intent. | [TODO: IntentWeb repository](https://github.com/your-org/intentweb) |
-| **AgentManifest** | The contract: a structured declaration that websites expose to AI agents. | This repository |
-| **Agent Layer Framework** | The implementation toolkit: generators, plugins, runtimes, policy engines and adapters. | [TODO: Agent Layer Framework repository](https://github.com/your-org/agent-layer-framework) |
+| Layer | Purpose | Repository                                                                            |
+| --- | --- |---------------------------------------------------------------------------------------|
+| **IntentWeb** | The vision: an AI-native layer of the Internet built around user intent. | [IntentWeb repository](https://github.com/intent-web)                                 |
+| **AgentManifest** | The contract: a structured declaration that websites expose to AI agents. | This repository                                                                       |
+| **Agent Layer Framework** | The implementation toolkit: generators, plugins, runtimes, policy engines and adapters. | [Agent Layer Framework repository](https://github.com/intent-web/agent-layer-framework) |
 
-IntentWeb and the Agent Layer Framework will be documented in separate
+IntentWeb and the Agent Layer Framework are documented in separate
 repositories. This repository focuses only on **AgentManifest as the standard
 contract**.
 
@@ -311,10 +311,8 @@ First success metric:
 This repository currently represents an early concept and specification draft
 for AgentManifest within the broader IntentWeb vision.
 
-Planned repository placeholders:
-
-- [TODO: IntentWeb repository](https://github.com/your-org/intentweb)
-- [TODO: Agent Layer Framework repository](https://github.com/your-org/agent-layer-framework)
+- [IntentWeb repository](https://github.com/intent-web)
+- [Agent Layer Framework repository](https://github.com/intent-web/agent-layer-framework)
 
 ## One-Sentence Summary
 
