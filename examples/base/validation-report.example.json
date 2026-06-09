@@ -1,0 +1,16 @@
+{
+  "validatedAt": "2026-06-09T00:00:00Z",
+  "schema": "../../rfc/schemas/agent-manifest.v0.1.schema.json",
+  "manifest": "./agent-manifest.json",
+  "valid": true,
+  "checks": [
+    {
+      "name": "json-schema",
+      "status": "passed"
+    },
+    {
+      "name": "safe-public-example",
+      "status": "passed"
+    }
+  ]
+}

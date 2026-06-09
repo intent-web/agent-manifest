@@ -1,0 +1,15 @@
+{
+  "name": "agent-manifest",
+  "version": "0.1.0-draft",
+  "private": true,
+  "description": "Experimental IntentWeb AgentManifest draft specification and examples.",
+  "type": "module",
+  "scripts": {
+    "validate:schema": "node scripts/validate-examples.mjs --schema-only",
+    "validate:examples": "node scripts/validate-examples.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

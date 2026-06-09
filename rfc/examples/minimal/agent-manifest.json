@@ -1,0 +1,54 @@
+{
+  "$schema": "../../schemas/agent-manifest.v0.1.schema.json",
+  "agentManifestVersion": "0.1-draft",
+  "id": "minimal-business-site",
+  "status": "example",
+  "templateKind": "minimal",
+  "identity": {
+    "name": "Example Business",
+    "domain": "example.com",
+    "owner": "Example Business LLC",
+    "contact": "support@example.com",
+    "jurisdiction": "US"
+  },
+  "platform": {
+    "type": "static-website",
+    "stack": ["html", "static-json"],
+    "integrationMode": "static",
+    "servingNotes": [
+      "Serve the manifest as JSON from the well-known location.",
+      "Expose only public read-only knowledge sources."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent.json"],
+    "llmContext": ["/llms.txt"]
+  },
+  "knowledge": [
+    {
+      "id": "site-summary",
+      "type": "summary",
+      "source": "/llms.txt",
+      "refresh": "on deploy"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "read-site-summary",
+      "name": "Read site summary",
+      "intent": "understand_organization",
+      "risk": "low",
+      "stateChange": false,
+      "requiresConsent": false,
+      "protocols": ["static"],
+      "audit": ["request_id"]
+    }
+  ],
+  "policies": {
+    "consent": "Read-only public information does not require explicit user consent.",
+    "auth": "No authentication is required for public summary access.",
+    "dataMinimization": "Expose only public organization information.",
+    "audit": "Log aggregate request metadata only."
+  },
+  "extensionPoints": []
+}

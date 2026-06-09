@@ -1,0 +1,50 @@
+{
+  "mcpVersion": "0.1-draft",
+  "server": {
+    "name": "Example Organization Agent Tools",
+    "url": "https://example.com/ai/mcp"
+  },
+  "tools": [
+    {
+      "name": "search_site",
+      "capabilityId": "search-public-content",
+      "description": "Search public content from Example Organization.",
+      "risk": "low",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "request_offer",
+      "capabilityId": "request-contact",
+      "description": "Submit a user-confirmed contact or offer request.",
+      "risk": "medium",
+      "requiresConsent": true,
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "email", "message", "consentId"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "message": {
+            "type": "string"
+          },
+          "consentId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

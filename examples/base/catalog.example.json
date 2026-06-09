@@ -1,0 +1,27 @@
+{
+  "catalogVersion": "0.1-draft",
+  "generatedAt": "2026-06-09T00:00:00Z",
+  "items": [
+    {
+      "id": "home",
+      "type": "page",
+      "title": "Home",
+      "url": "https://example.com/",
+      "summary": "Public overview of Example Organization."
+    },
+    {
+      "id": "services",
+      "type": "page",
+      "title": "Services",
+      "url": "https://example.com/services",
+      "summary": "Service categories and example use cases."
+    },
+    {
+      "id": "contact",
+      "type": "page",
+      "title": "Contact",
+      "url": "https://example.com/contact",
+      "summary": "Public contact channel for offer and support requests."
+    }
+  ]
+}

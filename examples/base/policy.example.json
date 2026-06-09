@@ -1,0 +1,30 @@
+{
+  "policyVersion": "0.1-draft",
+  "riskRules": {
+    "low": {
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "audit": ["request_id"]
+    },
+    "medium": {
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "audit": ["input_summary", "user_confirmation", "timestamp"]
+    },
+    "high": {
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "audit": ["input_summary", "authenticated_user", "explicit_confirmation", "timestamp"]
+    },
+    "critical": {
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "audit": ["input_summary", "authenticated_user", "explicit_approval", "correlation_id", "timestamp"]
+    }
+  },
+  "serverSideEnforcement": [
+    "Validate capability authorization before execution.",
+    "Reject high-risk and critical actions without explicit confirmation.",
+    "Use idempotency or replay protection for state-changing requests."
+  ]
+}

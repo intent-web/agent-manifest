@@ -1,0 +1,69 @@
+{
+  "$schema": "../../schemas/agent-manifest.v0.1.schema.json",
+  "agentManifestVersion": "0.1-draft",
+  "id": "example-local-service",
+  "status": "example",
+  "templateKind": "local-service",
+  "identity": {
+    "name": "Example Local Service",
+    "domain": "example.com",
+    "owner": "Example Local Service LLC",
+    "contact": "hello@example.com",
+    "jurisdiction": "US"
+  },
+  "platform": {
+    "type": "service-business-website",
+    "stack": ["static-site", "contact-api"],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Keep service descriptions public and read-only.",
+      "Submit appointment requests through a governed bridge endpoint."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
+    "llmContext": ["/llms.txt"],
+    "openapi": "/ai/openapi.json"
+  },
+  "knowledge": [
+    {
+      "id": "services",
+      "type": "catalog",
+      "source": "/ai/catalog/services.json",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "booking-policy",
+      "type": "policy",
+      "source": "/ai/policies/booking.json",
+      "refresh": "on policy change"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "search-services",
+      "intent": "find_public_information",
+      "risk": "low",
+      "stateChange": false,
+      "requiresConsent": false,
+      "protocols": ["static", "openapi"],
+      "audit": ["query", "result_count"]
+    },
+    {
+      "id": "request-appointment",
+      "intent": "submit_appointment_request",
+      "risk": "medium",
+      "stateChange": true,
+      "requiresConsent": true,
+      "protocols": ["openapi"],
+      "audit": ["input_summary", "user_confirmation", "timestamp"]
+    }
+  ],
+  "policies": {
+    "consent": "Appointment requests require confirmation of service, preferred time window, contact details, and location.",
+    "auth": "Public appointment requests do not require account authentication.",
+    "dataMinimization": "Collect only contact and scheduling information required to respond.",
+    "audit": "Store request summaries and confirmation timestamps for submitted requests."
+  },
+  "extensionPoints": ["openapi.example.json", "policy.example.json"]
+}

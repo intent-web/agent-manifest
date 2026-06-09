@@ -10,6 +10,9 @@ It tells an AI agent what a website is, what trusted knowledge it exposes, which
 business capabilities are available, which actions are safe, and when user
 consent, authentication or audit is required.
 
+> **Status:** AgentManifest is experimental. It is not an official RFC, not an
+> IETF-approved standard, and not part of any formal standards process.
+
 In simple terms: **AgentManifest helps websites explain themselves to AI agents
 before the agent starts guessing, scraping, clicking buttons or filling forms.**
 
@@ -27,8 +30,27 @@ AgentManifest is one part of the broader IntentWeb concept:
 | **Agent Layer Framework** | The implementation toolkit: generators, plugins, runtimes, policy engines and adapters. | [Agent Layer Framework repository](https://github.com/intent-web/agent-layer-framework) |
 
 IntentWeb and the Agent Layer Framework are documented in separate
-repositories. This repository focuses only on **AgentManifest as the standard
+repositories. This repository focuses only on **AgentManifest as the draft
 contract**.
+
+## Specification
+
+The Internet-Draft-style specification package lives under [`rfc/`](./rfc/):
+
+- [`rfc/README.md`](./rfc/README.md)
+- [`rfc/SPEC.md`](./rfc/SPEC.md)
+- [`rfc/draft-jernalczyk-intentweb-agent-manifest-00.md`](./rfc/draft-jernalczyk-intentweb-agent-manifest-00.md)
+- [`rfc/schemas/agent-manifest.v0.1.schema.json`](./rfc/schemas/agent-manifest.v0.1.schema.json)
+- [`rfc/docs/discovery.md`](./rfc/docs/discovery.md)
+- [`rfc/docs/security.md`](./rfc/docs/security.md)
+- [`rfc/docs/action-invocation.md`](./rfc/docs/action-invocation.md)
+
+## Validation
+
+```sh
+npm install
+npm run validate:examples
+```
 
 ## Why This Matters
 
@@ -316,6 +338,6 @@ for AgentManifest within the broader IntentWeb vision.
 
 ## One-Sentence Summary
 
-**AgentManifest is the official, machine-readable contract that lets AI agents
+**AgentManifest is the proposed, machine-readable contract that lets AI agents
 understand what a website knows, what it can do, and how to act safely with
 consent and audit.**

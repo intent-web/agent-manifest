@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intentweb.dev/schemas/agent-manifest.v0.1.schema.json",
+  "title": "AgentManifest v0.1 Draft",
+  "description": "Canonical JSON Schema for the experimental IntentWeb AgentManifest v0.1 draft. An AgentManifest is a machine-readable website contract for AI agents that describes identity, platform, discovery, trusted knowledge, capabilities, policies, and extension points.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "agentManifestVersion",
+    "id",
+    "status",
+    "templateKind",
+    "identity",
+    "platform",
+    "discovery",
+    "knowledge",
+    "capabilities",
+    "policies"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON Schema URI or relative path used by editors and validators."
+    },
+    "agentManifestVersion": {
+      "type": "string",
+      "const": "0.1-draft",
+      "description": "Version of the AgentManifest draft used by this document."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "description": "Stable manifest identifier. Use a lowercase slug that remains stable across deployments."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "example", "experimental", "stable", "deprecated"],
+      "description": "Lifecycle status of this manifest."
+    },
+    "templateKind": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Template or platform family represented by this manifest, such as default, cms-wordpress, ecommerce-shopify, or framework-nextjs."
+    },
+    "identity": {
+      "$ref": "#/$defs/identity"
+    },
+    "platform": {
+      "$ref": "#/$defs/platform"
+    },
+    "discovery": {
+      "$ref": "#/$defs/discovery"
+    },
+    "knowledge": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Trusted public knowledge sources that agents may use when answering or planning.",
+      "items": {
+        "$ref": "#/$defs/knowledgeSource"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Business or site capabilities that agents may reason about or invoke through declared protocols.",
+      "items": {
+        "$ref": "#/$defs/capability"
+      }
+    },
+    "policies": {
+      "$ref": "#/$defs/policies"
+    },
+    "extensionPoints": {
+      "type": "array",
+      "description": "Optional related files, documents, catalogs, schemas, OpenAPI descriptions, MCP descriptions, policy documents, validation reports, or implementation notes.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["name", "domain", "owner", "contact"],
+      "description": "Public identity of the website, organization, store, service, or application represented by the manifest.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Public name of the website, organization, store, or application."
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary domain represented by this manifest."
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Legal or operational owner responsible for the website."
+        },
+        "contact": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Public contact email address or URL for manifest-related questions."
+        },
+        "jurisdiction": {
+          "type": "string",
+          "description": "Legal jurisdiction or operating region, if relevant."
+        }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type", "stack", "integrationMode", "servingNotes"],
+      "description": "Implementation context for the website and the way it exposes the agent layer.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Platform category, such as generic-website, cms, frontend-framework, hosted-ecommerce, or server-rendered-website."
+        },
+        "stack": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Technologies, products, frameworks, or runtime components used by the website.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "integrationMode": {
+          "type": "string",
+          "enum": [
+            "static",
+            "bridge",
+            "runtime",
+            "static-or-bridge",
+            "static-or-runtime",
+            "bridge-or-runtime"
+          ],
+          "description": "How the site exposes the agent layer: static files, bridge endpoints, runtime services, or an allowed combination."
+        },
+        "servingNotes": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Platform-specific deployment notes, routing constraints, or serving requirements for the manifest and related files.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["recommendedLocations"],
+      "description": "Locations and related resources that help agents discover and interpret the manifest.",
+      "properties": {
+        "recommendedLocations": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Preferred paths or URLs where agents should look for this manifest.",
+          "items": {
+            "$ref": "#/$defs/pathOrUrl"
+          }
+        },
+        "llmContext": {
+          "type": "array",
+          "description": "Optional LLM-readable context files such as /llms.txt or /llms-full.txt.",
+          "items": {
+            "$ref": "#/$defs/pathOrUrl"
+          }
+        },
+        "openapi": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Optional path or URL for an OpenAPI description that binds capabilities to HTTP operations."
+        },
+        "mcp": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Optional path or URL for MCP server metadata or connection information."
+        }
+      }
+    },
+    "knowledgeSource": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "type", "source"],
+      "description": "A trusted knowledge source exposed by the website for agent use.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "description": "Stable knowledge source identifier."
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Knowledge source type, such as summary, catalog, product-catalog, route-catalog, content-catalog, fulfillment-policy, or policy."
+        },
+        "source": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Path or URL for the knowledge source."
+        },
+        "refresh": {
+          "type": "string",
+          "description": "Refresh trigger or cadence, such as on deploy, on publish, daily, or on policy change."
+        }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "intent",
+        "risk",
+        "stateChange",
+        "requiresConsent",
+        "protocols"
+      ],
+      "description": "A capability that expresses what an agent may understand, prepare, or invoke on behalf of a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "description": "Stable capability identifier."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable capability name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation of the capability."
+        },
+        "intent": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_]*$",
+          "description": "Machine-readable business intent represented by this capability."
+        },
+        "risk": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Risk level for agent reasoning, consent behavior, audit, and policy enforcement."
+        },
+        "stateChange": {
+          "type": "boolean",
+          "description": "Whether this capability creates, changes, commits, deletes, or otherwise mutates business state."
+        },
+        "requiresConsent": {
+          "type": "boolean",
+          "description": "Whether explicit user consent is required before this capability is executed."
+        },
+        "requiresAuthentication": {
+          "type": "boolean",
+          "description": "Whether authenticated user context is required before this capability can be executed."
+        },
+        "protocols": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Supported execution or discovery protocols, such as static, openapi, mcp, controller, route-handler, hosted-checkout, or agent-action-gateway.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "audit": {
+          "type": "array",
+          "description": "Audit fields expected for this capability.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "risk": {
+                "const": "critical"
+              }
+            },
+            "required": ["risk"]
+          },
+          "then": {
+            "properties": {
+              "requiresConsent": {
+                "const": true
+              },
+              "stateChange": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "array", "object", "boolean", "number", "null"]
+      },
+      "required": ["consent", "auth", "dataMinimization", "audit"],
+      "description": "Human-readable policy requirements that agents and protocol implementations must respect.",
+      "properties": {
+        "consent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Consent rule that agents should apply before execution."
+        },
+        "auth": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Authentication and authorization rule."
+        },
+        "dataMinimization": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Rule describing which data may be exposed or collected."
+        },
+        "audit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Audit rule for agent-triggered actions."
+        }
+      }
+    },
+    "pathOrUrl": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute site path, relative file path, or URI.",
+      "anyOf": [
+        {
+          "pattern": "^/"
+        },
+        {
+          "format": "uri"
+        },
+        {
+          "pattern": "^[.]{1,2}/"
+        }
+      ]
+    }
+  }
+}

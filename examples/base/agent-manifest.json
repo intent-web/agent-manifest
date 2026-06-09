@@ -1,5 +1,5 @@
 {
-  "$schema": "./agent-manifest.schema.json",
+  "$schema": "../../rfc/schemas/agent-manifest.v0.1.schema.json",
   "agentManifestVersion": "0.1-draft",
   "id": "default-business-website",
   "status": "example",
@@ -42,5 +42,5 @@
     "dataMinimization": "Collect only fields required for the selected capability.",
     "audit": "Store enough metadata to reconstruct what the agent submitted and what the user approved."
   },
-  "extensionPoints": ["openapi.json", "mcp-server.example.json", "catalog.example.json", "policy.example.json"]
+  "extensionPoints": ["openapi.example.json", "mcp-server.example.json", "catalog.example.json", "policy.example.json", "validation-report.example.json"]
 }

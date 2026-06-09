@@ -1,0 +1,84 @@
+{
+  "$schema": "../../schemas/agent-manifest.v0.1.schema.json",
+  "agentManifestVersion": "0.1-draft",
+  "id": "example-ecommerce-store",
+  "status": "example",
+  "templateKind": "ecommerce",
+  "identity": {
+    "name": "Example Store",
+    "domain": "example.com",
+    "owner": "Example Store Inc.",
+    "contact": "shop@example.com",
+    "jurisdiction": "US"
+  },
+  "platform": {
+    "type": "ecommerce-website",
+    "stack": ["commerce-platform", "openapi", "mcp"],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Expose product knowledge as public catalog data.",
+      "Require governed runtime execution for checkout and order actions."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
+    "llmContext": ["/llms.txt"],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
+  "knowledge": [
+    {
+      "id": "products",
+      "type": "product-catalog",
+      "source": "/ai/catalog/products.json",
+      "refresh": "hourly"
+    },
+    {
+      "id": "store-policies",
+      "type": "policy",
+      "source": "/policies",
+      "refresh": "on policy change"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "search-products",
+      "name": "Search products",
+      "intent": "find_products",
+      "risk": "low",
+      "stateChange": false,
+      "requiresConsent": false,
+      "protocols": ["static", "openapi", "mcp"],
+      "audit": ["query", "result_count"]
+    },
+    {
+      "id": "prepare-checkout",
+      "name": "Prepare checkout",
+      "intent": "prepare_checkout_for_review",
+      "risk": "medium",
+      "stateChange": true,
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "protocols": ["openapi", "mcp"],
+      "audit": ["cart_summary", "user_confirmation", "timestamp"]
+    },
+    {
+      "id": "place-order",
+      "name": "Place order",
+      "intent": "place_order",
+      "risk": "critical",
+      "stateChange": true,
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "protocols": ["hosted-checkout"],
+      "audit": ["order_summary", "explicit_approval", "payment_reference", "timestamp"]
+    }
+  ],
+  "policies": {
+    "consent": "Cart and order actions require user-visible summaries and explicit confirmation.",
+    "auth": "Customer-specific checkout actions require authenticated customer context.",
+    "dataMinimization": "Expose only public product data and collect only checkout fields required for fulfillment.",
+    "audit": "Critical order actions require immutable audit records."
+  },
+  "extensionPoints": ["openapi.example.json", "mcp-server.example.json", "policy.example.json"]
+}
