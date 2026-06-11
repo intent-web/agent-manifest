@@ -13,7 +13,10 @@
   },
   "platform": {
     "type": "generic-website",
-    "stack": ["html", "cms-or-custom-backend"],
+    "stack": [
+      "html",
+      "cms-or-custom-backend"
+    ],
     "integrationMode": "static-or-bridge",
     "servingNotes": [
       "Serve the manifest as a real static file, not as a visual web page.",
@@ -21,20 +24,130 @@
     ]
   },
   "discovery": {
-    "recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"],
-    "llmContext": ["/llms.txt", "/llms-full.txt"],
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/llms-full.txt"
+    ],
     "openapi": "/ai/openapi.json",
     "mcp": "/ai/mcp"
   },
   "knowledge": [
-    {"id": "site-summary", "type": "summary", "source": "/llms.txt", "refresh": "on deploy"},
-    {"id": "public-pages", "type": "catalog", "source": "/ai/catalog/pages.json", "refresh": "daily"},
-    {"id": "policies", "type": "policy", "source": "/ai/policies.json", "refresh": "on policy change"}
+    {
+      "id": "site-summary",
+      "type": "summary",
+      "source": "/llms.txt",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "public-pages",
+      "type": "catalog",
+      "source": "/ai/catalog/pages.json",
+      "refresh": "daily"
+    },
+    {
+      "id": "policies",
+      "type": "policy",
+      "source": "/ai/policies.json",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "read-site-summary", "intent": "understand_organization", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["request_id"]},
-    {"id": "search-public-content", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "openapi"], "audit": ["query", "result_count"]},
-    {"id": "request-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["openapi"], "audit": ["input_summary", "user_confirmation", "timestamp"]}
+    {
+      "id": "read-site-summary",
+      "name": "Read site summary",
+      "description": "Understand organization.",
+      "intent": "understand_organization",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/read-site-summary.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "request_id"
+      ]
+    },
+    {
+      "id": "search-public-content",
+      "name": "Search public content",
+      "description": "Find public information.",
+      "intent": "find_public_information",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-public-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "findPublicInformation",
+          "priority": 2,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "query",
+        "result_count"
+      ]
+    },
+    {
+      "id": "request-contact",
+      "name": "Request contact",
+      "description": "Submit contact request.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/request-contact.input.json",
+      "outputSchema": "/ai/schemas/request-contact.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "submitContactRequest",
+          "priority": 1,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation",
+        "timestamp"
+      ]
+    }
   ],
   "policies": {
     "consent": "Consent must be tied to a specific capability, input summary, user and timestamp.",
@@ -42,5 +155,11 @@
     "dataMinimization": "Collect only fields required for the selected capability.",
     "audit": "Store enough metadata to reconstruct what the agent submitted and what the user approved."
   },
-  "extensionPoints": ["openapi.example.json", "mcp-server.example.json", "catalog.example.json", "policy.example.json", "validation-report.example.json"]
+  "extensionPoints": [
+    "openapi.example.json",
+    "mcp-server.example.json",
+    "catalog.example.json",
+    "policy.example.json",
+    "validation-report.example.json"
+  ]
 }

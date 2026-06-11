@@ -2,7 +2,7 @@
 
 This directory contains the Internet-Draft-style specification package for the experimental IntentWeb AgentManifest draft.
 
-AgentManifest is a proposed machine-readable website contract for AI agents. It describes identity, trusted knowledge, capabilities, protocols, risk, consent, authentication, audit, and policies.
+AgentManifest is a proposed machine-readable website contract for AI agents. It describes identity, trusted knowledge, capabilities, structured bindings, risk, consent, authentication, audit, and policies.
 
 This package is experimental. It is not an official RFC, is not an IETF-approved standard, and has not gone through a formal standards process.
 
@@ -18,4 +18,4 @@ This package is experimental. It is not an official RFC, is not an IETF-approved
 
 ## Draft Status
 
-The current draft version is `0.1-draft`. Implementers should expect changes while the community tests discovery, validation, protocol bindings, consent models, and policy examples.
+The current draft version is `0.1-draft`. Implementers should expect changes while the community tests discovery, validation, structured bindings, consent models, and policy examples.

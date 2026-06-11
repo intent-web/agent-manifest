@@ -28,4 +28,4 @@ Logs should avoid unnecessary sensitive data. Where audit requires durable recor
 
 ## Sensitive Data
 
-Manifests should not expose private customer data, unpublished content, credentials, private endpoints, internal operational details, or regulated data. Protocol implementations should validate and protect sensitive inputs server-side.
+Manifests and bindings should not expose private customer data, unpublished content, credentials, private endpoints, internal operational details, or regulated data. Binding implementations should validate and protect sensitive inputs server-side.

@@ -3,20 +3,170 @@
   "id": "typo3-site",
   "status": "example",
   "templateKind": "cms-typo3",
-  "identity": {"name": "Example TYPO3 Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "enterprise-cms", "stack": ["typo3", "php", "site-packages", "extensions"], "integrationMode": "static-or-bridge", "servingNotes": ["Generate language and site-root aware manifests for multi-site installations.", "Respect TYPO3 workspaces, hidden pages and access restrictions."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/typo3/content-summary.txt"], "openapi": "/agent-layer/openapi.json", "mcp": "/agent-layer/mcp"},
+  "identity": {
+    "name": "Example TYPO3 Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "enterprise-cms",
+    "stack": [
+      "typo3",
+      "php",
+      "site-packages",
+      "extensions"
+    ],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Generate language and site-root aware manifests for multi-site installations.",
+      "Respect TYPO3 workspaces, hidden pages and access restrictions."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-layer/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/typo3/content-summary.txt"
+    ],
+    "openapi": "/agent-layer/openapi.json",
+    "mcp": "/agent-layer/mcp"
+  },
   "knowledge": [
-    {"id": "pages", "type": "page-tree-catalog", "source": "/ai/typo3/pages.json", "refresh": "on page publish"},
-    {"id": "content-elements", "type": "content-catalog", "source": "/ai/typo3/content-elements.json", "refresh": "on content publish"},
-    {"id": "languages", "type": "localization-context", "source": "/ai/typo3/languages.json", "refresh": "on site config change"}
+    {
+      "id": "pages",
+      "type": "page-tree-catalog",
+      "source": "/ai/typo3/pages.json",
+      "refresh": "on page publish"
+    },
+    {
+      "id": "content-elements",
+      "type": "content-catalog",
+      "source": "/ai/typo3/content-elements.json",
+      "refresh": "on content publish"
+    },
+    {
+      "id": "languages",
+      "type": "localization-context",
+      "source": "/ai/typo3/languages.json",
+      "refresh": "on site config change"
+    }
   ],
   "capabilities": [
-    {"id": "search-site", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "extension-api"], "audit": ["query", "language"]},
-    {"id": "read-page", "intent": "read_public_page", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["extension-api"], "audit": ["page_id", "language"]},
-    {"id": "submit-form", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["extension-api", "form-framework-adapter"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+    {
+      "id": "search-site",
+      "name": "Search site",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-site.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-site",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 2,
+          "schemaMode": "none",
+          "sourceAdapter": "extension-api"
+        }
+      ],
+      "audit": [
+        "query",
+        "language"
+      ]
+    },
+    {
+      "id": "read-page",
+      "name": "Read page",
+      "description": "Read public page.",
+      "intent": "read_public_page",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/read-page",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "extension-api"
+        }
+      ],
+      "audit": [
+        "page_id",
+        "language"
+      ]
+    },
+    {
+      "id": "submit-form",
+      "name": "Submit form",
+      "description": "Submit form request.",
+      "intent": "submit_form_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-form.input.json",
+      "outputSchema": "/ai/schemas/submit-form.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-form",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "extension-api"
+        }
+      ],
+      "audit": [
+        "form_id",
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "TYPO3 form submissions require user confirmation of exact submitted fields.", "auth": "Workspace previews, protected pages and backend operations require authentication.", "dataMinimization": "Exclude hidden pages, restricted content and internal extension configuration.", "audit": "Log state-changing actions with site identifier and language."},
-  "extensionPoints": ["typo3-extension.md", "site-language-policy.json", "form-framework-adapter.md", "workspace-access-policy.json"]
+  "policies": {
+    "consent": "TYPO3 form submissions require user confirmation of exact submitted fields.",
+    "auth": "Workspace previews, protected pages and backend operations require authentication.",
+    "dataMinimization": "Exclude hidden pages, restricted content and internal extension configuration.",
+    "audit": "Log state-changing actions with site identifier and language."
+  },
+  "extensionPoints": [
+    "typo3-extension.md",
+    "site-language-policy.json",
+    "form-framework-adapter.md",
+    "workspace-access-policy.json"
+  ]
 }
-

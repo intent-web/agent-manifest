@@ -3,20 +3,196 @@
   "id": "wordpress-memberpress-membership-site",
   "status": "example",
   "templateKind": "wordpress-membership-commerce",
-  "identity": {"name": "Example Membership Site", "domain": "example.com", "owner": "Example Publisher", "contact": "members@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "wordpress-membership-plugin", "stack": ["wordpress", "memberpress", "php", "mysql"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Separate public marketing content from protected member content.", "Treat membership purchases, cancellations and access changes as high or critical risk."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/memberships/plans.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "identity": {
+    "name": "Example Membership Site",
+    "domain": "example.com",
+    "owner": "Example Publisher",
+    "contact": "members@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "wordpress-membership-plugin",
+    "stack": [
+      "wordpress",
+      "memberpress",
+      "php",
+      "mysql"
+    ],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Separate public marketing content from protected member content.",
+      "Treat membership purchases, cancellations and access changes as high or critical risk."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/wp-json/agent-layer/v1/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/memberships/plans.txt"
+    ],
+    "openapi": "/wp-json/agent-layer/v1/openapi.json",
+    "mcp": "/wp-json/agent-layer/v1/mcp"
+  },
   "knowledge": [
-    {"id": "plans", "type": "membership-plan-catalog", "source": "/ai/memberships/plans.json", "refresh": "on plan update"},
-    {"id": "public-content", "type": "content-catalog", "source": "/ai/memberships/public-content.json", "refresh": "on publish"},
-    {"id": "terms", "type": "policy", "source": "/membership-terms", "refresh": "on policy change"}
+    {
+      "id": "plans",
+      "type": "membership-plan-catalog",
+      "source": "/ai/memberships/plans.json",
+      "refresh": "on plan update"
+    },
+    {
+      "id": "public-content",
+      "type": "content-catalog",
+      "source": "/ai/memberships/public-content.json",
+      "refresh": "on publish"
+    },
+    {
+      "id": "terms",
+      "type": "policy",
+      "source": "/membership-terms",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "compare-memberships", "intent": "compare_membership_plans", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["plan_ids"]},
-    {"id": "check-access-requirements", "intent": "check_content_access_requirements", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["wordpress-rest"], "audit": ["content_id"]},
-    {"id": "prepare-membership-signup", "intent": "prepare_membership_signup", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["plan_summary", "user_confirmation"]},
-    {"id": "start-membership", "intent": "start_paid_membership", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["plan", "billing_terms", "explicit_approval"]}
+    {
+      "id": "compare-memberships",
+      "name": "Compare memberships",
+      "description": "Compare membership plans.",
+      "intent": "compare_membership_plans",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/compare-memberships.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "plan_ids"
+      ]
+    },
+    {
+      "id": "check-access-requirements",
+      "name": "Check access requirements",
+      "description": "Check content access requirements.",
+      "intent": "check_content_access_requirements",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/check-access-requirements",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "wordpress-rest"
+        }
+      ],
+      "audit": [
+        "content_id"
+      ]
+    },
+    {
+      "id": "prepare-membership-signup",
+      "name": "Prepare membership signup",
+      "description": "Prepare membership signup.",
+      "intent": "prepare_membership_signup",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/prepare-membership-signup.input.json",
+      "outputSchema": "/ai/schemas/prepare-membership-signup.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-membership-signup",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "plan_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "start-membership",
+      "name": "Start membership",
+      "description": "Start paid membership.",
+      "intent": "start_paid_membership",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/start-membership.input.json",
+      "outputSchema": "/ai/schemas/start-membership.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/start-membership",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "plan",
+        "billing_terms",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Paid membership start requires explicit approval of price, billing interval and cancellation terms.", "auth": "Protected content and account actions require authenticated member context.", "dataMinimization": "Do not expose protected content in public knowledge catalogs.", "audit": "Membership starts, cancellations and access changes require audit records."},
-  "extensionPoints": ["membership-plan-schema.json", "memberpress-openapi.json", "protected-content-policy.json", "billing-consent-policy.json"]
+  "policies": {
+    "consent": "Paid membership start requires explicit approval of price, billing interval and cancellation terms.",
+    "auth": "Protected content and account actions require authenticated member context.",
+    "dataMinimization": "Do not expose protected content in public knowledge catalogs.",
+    "audit": "Membership starts, cancellations and access changes require audit records."
+  },
+  "extensionPoints": [
+    "membership-plan-schema.json",
+    "memberpress-openapi.json",
+    "protected-content-policy.json",
+    "billing-consent-policy.json"
+  ]
 }

@@ -1,6 +1,6 @@
 # Action Invocation
 
-AgentManifest separates capability selection from protocol execution. An agent should first decide what the user is asking for, then select a declared capability, validate risk and policy, obtain consent when required, and finally call a declared protocol.
+AgentManifest separates capability selection from binding execution. An agent should first decide what the user is asking for, then select a declared capability, validate risk and policy, obtain consent when required, and finally call a supported binding.
 
 ## Invocation Flow
 
@@ -8,10 +8,11 @@ AgentManifest separates capability selection from protocol execution. An agent s
 2. Validate the manifest against `rfc/schemas/agent-manifest.v0.1.schema.json`.
 3. Confirm the manifest identity matches the site the user intended.
 4. Select the capability whose `intent` matches the user request.
-5. Check `risk`, `stateChange`, `requiresConsent`, `requiresAuthentication`, and `audit`.
-6. Obtain explicit user confirmation for medium, high, and critical actions when required by policy.
-7. Invoke a declared protocol such as OpenAPI or MCP.
-8. Return a concise result summary with a correlation ID or audit ID when available.
+5. Check `risk`, `stateChange`, `consentMode`, `requiresConsent`, `requiresAuthentication`, `enforcement`, and `audit`.
+6. Choose the best supported binding by `priority` and client support.
+7. Obtain explicit user confirmation for medium, high, and critical actions when required by policy.
+8. Invoke the selected binding, such as HTTP, OpenAPI, MCP, or hosted checkout.
+9. Return a concise result summary with a correlation ID or audit ID when available.
 
 ## Consent Check
 
@@ -21,13 +22,13 @@ Consent should be tied to:
 - a user-visible input summary,
 - the user or session,
 - the timestamp,
-- the target protocol operation.
+- the selected binding operation.
 
 Consent for one capability should not authorize unrelated capabilities.
 
 ## Action Result Envelope
 
-Protocol implementations SHOULD return a consistent envelope for state-changing actions:
+Binding implementations SHOULD return a consistent envelope for state-changing actions:
 
 ```json
 {

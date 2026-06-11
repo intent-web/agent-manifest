@@ -3,28 +3,170 @@
   "id": "wordpress-core-site",
   "status": "example",
   "templateKind": "cms-wordpress",
-  "identity": {"name": "Example WordPress Site", "domain": "example.com", "owner": "Example Publisher", "contact": "editor@example.com", "jurisdiction": "TODO"},
+  "identity": {
+    "name": "Example WordPress Site",
+    "domain": "example.com",
+    "owner": "Example Publisher",
+    "contact": "editor@example.com",
+    "jurisdiction": "TODO"
+  },
   "platform": {
     "type": "cms",
-    "stack": ["wordpress", "php", "mysql", "theme", "plugins"],
+    "stack": [
+      "wordpress",
+      "php",
+      "mysql",
+      "theme",
+      "plugins"
+    ],
     "integrationMode": "static-or-bridge",
     "servingNotes": [
       "Generate the manifest from WordPress settings, posts, pages, taxonomies and public plugin metadata.",
       "Exclude draft, private, password-protected and noindex content unless explicitly allowed."
     ]
   },
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/llms-full.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/wp-json/agent-layer/v1/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/llms-full.txt"
+    ],
+    "openapi": "/wp-json/agent-layer/v1/openapi.json",
+    "mcp": "/wp-json/agent-layer/v1/mcp"
+  },
   "knowledge": [
-    {"id": "pages", "type": "page-catalog", "source": "/wp-json/wp/v2/pages?status=publish", "refresh": "on publish"},
-    {"id": "posts", "type": "post-catalog", "source": "/wp-json/wp/v2/posts?status=publish", "refresh": "on publish"},
-    {"id": "taxonomies", "type": "taxonomy-catalog", "source": "/wp-json/wp/v2/categories", "refresh": "on taxonomy change"}
+    {
+      "id": "pages",
+      "type": "page-catalog",
+      "source": "/wp-json/wp/v2/pages?status=publish",
+      "refresh": "on publish"
+    },
+    {
+      "id": "posts",
+      "type": "post-catalog",
+      "source": "/wp-json/wp/v2/posts?status=publish",
+      "refresh": "on publish"
+    },
+    {
+      "id": "taxonomies",
+      "type": "taxonomy-catalog",
+      "source": "/wp-json/wp/v2/categories",
+      "refresh": "on taxonomy change"
+    }
   ],
   "capabilities": [
-    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["wordpress-rest", "static"], "audit": ["query", "result_count"]},
-    {"id": "read-page", "intent": "read_public_page", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["wordpress-rest"], "audit": ["post_id"]},
-    {"id": "submit-contact-form", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["wordpress-rest", "form-plugin-adapter"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+    {
+      "id": "search-content",
+      "name": "Search content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-content",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "wordpress-rest"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-content.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query",
+        "result_count"
+      ]
+    },
+    {
+      "id": "read-page",
+      "name": "Read page",
+      "description": "Read public page.",
+      "intent": "read_public_page",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/read-page",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "wordpress-rest"
+        }
+      ],
+      "audit": [
+        "post_id"
+      ]
+    },
+    {
+      "id": "submit-contact-form",
+      "name": "Submit contact form",
+      "description": "Submit contact request.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-contact-form.input.json",
+      "outputSchema": "/ai/schemas/submit-contact-form.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-contact-form",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "wordpress-rest"
+        }
+      ],
+      "audit": [
+        "form_id",
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Form submissions require user confirmation of the exact submitted summary.", "auth": "Admin-only WordPress REST routes must never be exposed as public agent capabilities.", "dataMinimization": "Only expose fields needed for public discovery.", "audit": "Keep per-capability logs outside public WordPress content tables when possible."},
-  "extensionPoints": ["plugin-admin-ui.md", "wp-rest-openapi.json", "forms-adapters.md", "content-index.json"]
+  "policies": {
+    "consent": "Form submissions require user confirmation of the exact submitted summary.",
+    "auth": "Admin-only WordPress REST routes must never be exposed as public agent capabilities.",
+    "dataMinimization": "Only expose fields needed for public discovery.",
+    "audit": "Keep per-capability logs outside public WordPress content tables when possible."
+  },
+  "extensionPoints": [
+    "plugin-admin-ui.md",
+    "wp-rest-openapi.json",
+    "forms-adapters.md",
+    "content-index.json"
+  ]
 }
-

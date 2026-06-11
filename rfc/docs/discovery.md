@@ -41,6 +41,12 @@ If no manifest is found, an agent SHOULD continue normal web behavior and SHOULD
 
 Absence of a manifest means only that no AgentManifest contract was discovered. It does not imply permission to automate forms, bypass UI checks, ignore authentication, or infer business policy from page text alone.
 
+## Capability and Binding Selection
+
+After discovering and validating a manifest, an agent should select the capability that matches the user intent, check the capability-level risk, consent, authentication, and enforcement requirements, then choose the best supported binding by priority and client capability.
+
+Bindings describe how a capability can be read or executed. OpenAPI and MCP are binding kinds, not replacements for the capability contract.
+
 ## Recommended Discovery Order
 
 1. Request `/.well-known/agent.json`.

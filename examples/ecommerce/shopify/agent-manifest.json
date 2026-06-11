@@ -3,21 +3,203 @@
   "id": "shopify-store",
   "status": "example",
   "templateKind": "ecommerce-shopify",
-  "identity": {"name": "Example Shopify Store", "domain": "example.com", "owner": "Example Merchant", "contact": "shop@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "hosted-ecommerce", "stack": ["shopify", "liquid", "storefront-api", "app-extension"], "integrationMode": "static-or-runtime", "servingNotes": ["Publish static manifest files through theme assets or a storefront route where possible.", "Use an app proxy or external runtime for governed actions."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/apps/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/shopify/catalog-summary.txt"], "openapi": "/apps/agent-layer/openapi.json", "mcp": "/apps/agent-layer/mcp"},
+  "identity": {
+    "name": "Example Shopify Store",
+    "domain": "example.com",
+    "owner": "Example Merchant",
+    "contact": "shop@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "hosted-ecommerce",
+    "stack": [
+      "shopify",
+      "liquid",
+      "storefront-api",
+      "app-extension"
+    ],
+    "integrationMode": "static-or-runtime",
+    "servingNotes": [
+      "Publish static manifest files through theme assets or a storefront route where possible.",
+      "Use an app proxy or external runtime for governed actions."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/apps/agent-layer/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/shopify/catalog-summary.txt"
+    ],
+    "openapi": "/apps/agent-layer/openapi.json",
+    "mcp": "/apps/agent-layer/mcp"
+  },
   "knowledge": [
-    {"id": "products", "type": "product-catalog", "source": "/ai/shopify/products.json", "refresh": "on product webhook"},
-    {"id": "collections", "type": "collection-catalog", "source": "/ai/shopify/collections.json", "refresh": "on collection webhook"},
-    {"id": "store-policies", "type": "policy", "source": "/policies", "refresh": "on policy change"}
+    {
+      "id": "products",
+      "type": "product-catalog",
+      "source": "/ai/shopify/products.json",
+      "refresh": "on product webhook"
+    },
+    {
+      "id": "collections",
+      "type": "collection-catalog",
+      "source": "/ai/shopify/collections.json",
+      "refresh": "on collection webhook"
+    },
+    {
+      "id": "store-policies",
+      "type": "policy",
+      "source": "/policies",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["storefront-api", "static"], "audit": ["query"]},
-    {"id": "check-variant", "intent": "check_variant_availability", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["storefront-api"], "audit": ["variant_id"]},
-    {"id": "prepare-checkout", "intent": "prepare_checkout_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["app-proxy", "agent-action-gateway"], "audit": ["checkout_summary", "user_confirmation"]},
-    {"id": "complete-checkout", "intent": "complete_purchase", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["hosted-checkout"], "audit": ["checkout_url", "total", "explicit_approval"]}
+    {
+      "id": "search-products",
+      "name": "Search products",
+      "description": "Find products.",
+      "intent": "find_products",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-products",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "storefront-api"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-products.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "check-variant",
+      "name": "Check variant",
+      "description": "Check variant availability.",
+      "intent": "check_variant_availability",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/check-variant",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "storefront-api"
+        }
+      ],
+      "audit": [
+        "variant_id"
+      ]
+    },
+    {
+      "id": "prepare-checkout",
+      "name": "Prepare checkout",
+      "description": "Prepare checkout for review.",
+      "intent": "prepare_checkout_for_review",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/prepare-checkout.input.json",
+      "outputSchema": "/ai/schemas/prepare-checkout.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-checkout",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "app-proxy"
+        }
+      ],
+      "audit": [
+        "checkout_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "complete-checkout",
+      "name": "Complete checkout",
+      "description": "Complete purchase.",
+      "intent": "complete_purchase",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/complete-checkout.input.json",
+      "outputSchema": "/ai/schemas/complete-checkout.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "hosted-checkout",
+          "url": "/checkout",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "checkout_url",
+        "total",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Checkout must be reviewed with items, variants, shipping, taxes, discounts and total before purchase.", "auth": "Customer account data requires customer authentication.", "dataMinimization": "Do not expose private app tokens or admin API details.", "audit": "Store checkout and user confirmation references outside public theme assets."},
-  "extensionPoints": ["shopify-app-proxy.md", "storefront-api-mapping.md", "checkout-policy.json", "webhook-refresh-policy.json"]
+  "policies": {
+    "consent": "Checkout must be reviewed with items, variants, shipping, taxes, discounts and total before purchase.",
+    "auth": "Customer account data requires customer authentication.",
+    "dataMinimization": "Do not expose private app tokens or admin API details.",
+    "audit": "Store checkout and user confirmation references outside public theme assets."
+  },
+  "extensionPoints": [
+    "shopify-app-proxy.md",
+    "storefront-api-mapping.md",
+    "checkout-policy.json",
+    "webhook-refresh-policy.json"
+  ]
 }
-

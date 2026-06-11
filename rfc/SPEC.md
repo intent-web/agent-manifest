@@ -6,13 +6,13 @@ This document defines the experimental AgentManifest v0.1-draft specification fo
 
 AgentManifest is not an official RFC, is not an IETF-approved standard, and has not been reviewed through any formal standards process. The format is intentionally Internet-Draft-style so implementers can review the proposal with familiar structure and terminology.
 
-Sections that define required manifest structure, discovery behavior, protocol expectations, and processing requirements are normative for this draft. Examples, explanatory notes, and deployment guidance are informative.
+Sections that define required manifest structure, discovery behavior, binding expectations, and processing requirements are normative for this draft. Examples, explanatory notes, and deployment guidance are informative.
 
 The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED, MAY, and OPTIONAL are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in all capitals. This convention is used for the purpose of this draft only.
 
 ## Abstract
 
-AgentManifest is a proposed machine-readable website contract for AI agents. A manifest describes website identity, trusted knowledge sources, capabilities, protocol bindings, risk levels, consent requirements, authentication expectations, audit rules, and policy constraints. The goal is to let agents understand what a website knows and what it can safely do before relying on scraping, visual automation, or prompt-only instructions.
+AgentManifest is a proposed machine-readable website contract for AI agents. A manifest describes website identity, trusted knowledge sources, capabilities, structured bindings, risk levels, consent requirements, authentication expectations, audit rules, and policy constraints. The goal is to let agents understand what a website knows, what it can safely do, and how each capability can be invoked before relying on scraping, visual automation, or prompt-only instructions.
 
 ## Introduction
 
@@ -26,7 +26,7 @@ Normative goals for this draft:
 
 - A conforming manifest MUST be a JSON object.
 - A conforming manifest MUST identify the draft version, owner, platform, discovery locations, knowledge sources, capabilities, and policies.
-- Capabilities MUST declare risk, state-change behavior, consent requirements, and supported protocols.
+- Capabilities MUST declare semantic type, risk, state-change behavior, consent requirements, and supported bindings.
 - The format MUST allow additional properties for forward-compatible experimentation.
 - The draft MUST support static discovery before requiring any runtime action infrastructure.
 
@@ -43,11 +43,11 @@ Informative goals:
 | --- | --- |
 | Agent | Software acting for a user or organization, including AI assistants and automated clients. |
 | AgentManifest | The JSON document defined by this draft. |
-| Capability | A declared task, operation, or business intent that an agent may understand, prepare, or invoke. |
-| Consent | Explicit user approval tied to a specific capability and input summary. |
+| Capability | The semantic WHAT: a declared task, operation, or business intent that an agent may understand, prepare, or invoke, including risk, consent, policy, and canonical schemas. |
+| Binding | The concrete HOW: a mechanism that maps a capability to an access or execution surface such as HTML, static files, HTTP, OpenAPI, MCP, or hosted checkout. |
+| Consent | User approval or review requirement tied to a specific capability and input summary. |
 | Knowledge source | A trusted public source that agents may use for understanding or planning. |
 | Manifest publisher | The website or organization that publishes the manifest. |
-| Protocol binding | A mapping from a capability to an execution or discovery protocol such as static files, OpenAPI, or MCP. |
 | Risk level | A declared estimate of action impact: low, medium, high, or critical. |
 
 ## Conventions
@@ -113,7 +113,7 @@ The top-level AgentManifest object contains required core fields and optional ex
 rfc/schemas/agent-manifest.v0.1.schema.json
 ```
 
-The schema is normative for structural validation in this draft. This prose specification is normative for behavior, risk, consent, and protocol interpretation.
+The schema is normative for structural validation in this draft. This prose specification is normative for behavior, risk, consent, and binding interpretation.
 
 ## Required Fields
 
@@ -195,18 +195,38 @@ Common knowledge source types include `summary`, `catalog`, `product-catalog`, `
 
 ## Capabilities
 
+Capabilities describe the semantic WHAT: the user or business intent, risk, consent mode, authentication requirement, policy expectations, audit expectations, and canonical input/output contract. Bindings describe HOW that capability can be read, accessed, or executed.
+
 Each capability MUST include:
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | string | Stable capability identifier. |
+| `name` | string | Human-readable capability name. |
+| `description` | string | Human-readable description. |
 | `intent` | string | Machine-readable business intent. |
+| `type` | string | Capability type. |
 | `risk` | string | `low`, `medium`, `high`, or `critical`. |
 | `stateChange` | boolean | Whether the capability mutates business state. |
-| `requiresConsent` | boolean | Whether explicit consent is required. |
-| `protocols` | array | Supported protocols or execution surfaces. |
+| `consentMode` | string | Normative consent behavior. |
+| `requiresConsent` | boolean | Compatibility boolean for whether user consent is required. |
+| `requiresAuthentication` | boolean | Whether authenticated user context is required. |
+| `bindings` | array | One or more concrete access or execution bindings. |
 
-Capabilities MAY include `name`, `description`, `requiresAuthentication`, `audit`, and protocol-specific extension fields.
+Capabilities MAY include `inputSchema`, `outputSchema`, `enforcement`, `audit`, and extension fields.
+
+Core capability `type` values are:
+
+| Type | Meaning |
+| --- | --- |
+| `resource` | A public or authenticated resource that can be read. |
+| `query` | A search, lookup, filtering, or retrieval operation. |
+| `action` | A state-changing workflow that is not itself a payment, order, or legal commitment. |
+| `transaction` | A purchase, order, payment, subscription, legal commitment, or equivalent critical workflow. |
+| `conversation` | A mediated conversation, support thread, chat, or follow-up exchange. |
+| `handoff` | A transfer to a human, external app, hosted surface, or different channel. |
+
+AgentManifest is vendor-neutral. It MUST NOT depend on AgentLayer Framework, and it MUST NOT require implementation ownership fields such as `managedBy` or normative `agentLayer` fields. AgentLayer Framework MAY generate manifests and bindings, but it is only one possible implementation path.
 
 ## Risk Levels
 
@@ -217,55 +237,81 @@ Capabilities MAY include `name`, `description`, `requiresAuthentication`, `audit
 | `high` | Changes user data, makes bookings, or affects access, availability, or account state. | MUST require explicit confirmation and audit. |
 | `critical` | Payments, orders, legal commitments, irreversible actions, destructive operations, or regulated workflows. | MUST require explicit confirmation, audit, and appropriate authentication. |
 
-Critical capabilities MUST set `stateChange` to `true` and `requiresConsent` to `true`.
+Critical capabilities MUST set `stateChange` to `true`, `requiresConsent` to `true`, and `consentMode` to `explicit`, `step_up`, or `human_review`.
+
+Capabilities with `type` set to `transaction` MUST set `stateChange` to `true` and `requiresConsent` to `true`.
 
 ## Consent Model
 
-Consent MUST be specific to a capability, input summary, user or user session, timestamp, and intended protocol invocation. Consent MUST NOT be treated as a general permanent authorization for unrelated actions.
+The `consentMode` field is the expressive normative field. The `requiresConsent` boolean is retained for compatibility and quick filtering.
+
+Core `consentMode` values are:
+
+| Mode | Meaning |
+| --- | --- |
+| `none` | No user consent is required before use. |
+| `implicit` | Consent may be inferred from the user's immediate request and context. |
+| `explicit` | The agent must ask the user to approve the specific action and input summary. |
+| `step_up` | The action requires stronger confirmation, re-authentication, or additional verification. |
+| `human_review` | The action requires human approval or review before completion. |
+
+Consent MUST be specific to a capability, input summary, user or user session, timestamp, and intended binding invocation. Consent MUST NOT be treated as a general permanent authorization for unrelated actions.
 
 For medium, high, and critical risk actions, agents SHOULD present a concise user-visible summary before invocation. High and critical actions MUST be auditable.
 
-## Protocol Bindings
+## Bindings
 
-The `protocols` array declares the protocols or execution surfaces a capability supports. This draft recognizes `static`, `openapi`, and `mcp` as core protocol categories. Other values MAY be used as extensions.
+The `bindings` array declares the concrete access or execution mechanisms a capability supports. Each binding MUST include `kind`, `priority`, and `schemaMode`. Lower `priority` numbers are preferred when an agent supports multiple bindings. Unknown binding properties and extension binding kinds MAY be used for forward compatibility.
 
-A protocol binding MUST NOT weaken the risk and consent requirements declared by the capability.
+A binding MUST NOT weaken the capability-level `risk`, `stateChange`, `consentMode`, `requiresConsent`, `requiresAuthentication`, or enforcement requirements.
 
-## OpenAPI Binding
+Core binding `kind` values are:
 
-An OpenAPI binding is informative in v0.1-draft except for the following requirements:
+| Kind | Meaning |
+| --- | --- |
+| `html` | Read an HTML page, usually read-only or fallback. |
+| `static` | Read a static machine-readable resource. |
+| `http` | Invoke a direct HTTP endpoint. |
+| `openapi` | Map to an OpenAPI operation, usually by `spec` and `operationId`. |
+| `mcp` | Map to an MCP tool, usually by `server` and `tool`. |
+| `hosted-checkout` | Hand off to an external checkout, payment, review, or hosted confirmation surface. |
 
-- If `discovery.openapi` is present, it SHOULD point to a valid OpenAPI document.
-- Operations intended for agent invocation SHOULD map clearly to capability identifiers.
-- State-changing OpenAPI operations MUST enforce consent, authorization, validation, and policy server-side.
+HTML and static bindings are generally read-oriented. They MUST NOT be used to silently execute state-changing actions.
 
-Capability-to-operation mapping MAY be expressed through operation IDs, tags, or extension fields such as `x-agent-capability`.
+## Schema Modes
 
-## MCP Binding
+Capability-level `inputSchema` and `outputSchema` define the canonical semantic contract for the capability. A manifest SHOULD NOT duplicate OpenAPI or MCP schemas when those schemas already exist in the OpenAPI document or MCP tool definition. Instead, the binding should map the capability to the external operation or tool and declare how schemas relate.
 
-An MCP binding is informative in v0.1-draft except for the following requirements:
+Binding-level `schemaMode` values are:
 
-- If `discovery.mcp` is present, it SHOULD point to MCP server metadata or a connection description.
-- MCP tools intended for agent use SHOULD map clearly to capability identifiers.
-- MCP servers MUST enforce authorization, consent, validation, and policy server-side for state-changing or sensitive tools.
+| Mode | Meaning |
+| --- | --- |
+| `none` | The binding does not declare an input or output schema. |
+| `inherits` | The binding uses the capability-level schemas directly. |
+| `external` | The binding relies on schemas from an external OpenAPI operation, MCP tool, or equivalent contract. |
+| `overrides` | The binding declares binding-specific schemas. |
+| `mapped` | The binding uses mappings between canonical capability schemas and binding-specific schemas. |
+
+OpenAPI bindings SHOULD include `spec` and `operationId`. MCP bindings SHOULD include `server` and `tool`. State-changing HTTP, OpenAPI, and MCP bindings MUST enforce consent, authorization, validation, policy, rate limits, replay protection, and audit server-side.
 
 ## Action Invocation
 
 Before invoking a capability, an agent SHOULD:
 
-1. Discover and validate the manifest.
-2. Confirm the publisher identity is appropriate for the user request.
+1. Discover the manifest.
+2. Validate the manifest.
 3. Select the capability matching the user intent.
-4. Check the declared risk, consent, authentication, and audit requirements.
-5. Obtain user consent when required.
-6. Invoke a declared protocol.
-7. Return a result summary and audit or correlation identifier when available.
+4. Check declared risk, consent, authentication, enforcement, and audit requirements.
+5. Choose the best supported binding by priority and client support.
+6. Obtain user consent when required.
+7. Invoke the selected binding.
+8. Return a result summary and audit or correlation identifier when available.
 
-Agents MUST NOT rely only on prompt instructions in the manifest for safety decisions. Protocol endpoints and servers are responsible for policy enforcement.
+Agents MUST NOT rely only on prompt instructions in the manifest for safety decisions. Binding endpoints and servers are responsible for policy enforcement.
 
 ## Action Result Envelope
 
-Protocol implementations SHOULD return an action result envelope for state-changing actions.
+Binding implementations SHOULD return an action result envelope for state-changing actions.
 
 ```json
 {
@@ -288,7 +334,7 @@ The envelope is informative for v0.1-draft and is expected to become more precis
 
 ## Error Handling
 
-Agents and protocol implementations SHOULD use explicit error responses. Errors SHOULD include a stable error code, a human-readable message, and a correlation ID when possible.
+Agents and binding implementations SHOULD use explicit error responses. Errors SHOULD include a stable error code, a human-readable message, and a correlation ID when possible.
 
 Example:
 
@@ -334,7 +380,7 @@ Experimental implementations SHOULD be prepared for incompatible changes before 
 
 ## Extensibility
 
-Unknown properties are allowed by the v0.1 schema. Implementations MAY define extension fields for platform-specific capabilities, protocol bindings, policy details, or validation metadata.
+Unknown properties are allowed by the v0.1 schema. Implementations MAY define extension fields for platform-specific capabilities, bindings, policy details, or validation metadata.
 
 Extension fields SHOULD avoid conflicting with existing top-level property names. Future drafts may reserve additional names.
 

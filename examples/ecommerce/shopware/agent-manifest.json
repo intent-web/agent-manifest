@@ -3,21 +3,207 @@
   "id": "shopware-store",
   "status": "example",
   "templateKind": "ecommerce-shopware",
-  "identity": {"name": "Example Shopware Store", "domain": "example.com", "owner": "Example Merchant", "contact": "commerce@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "commerce-platform", "stack": ["shopware", "symfony", "mysql", "sales-channel-api"], "integrationMode": "runtime", "servingNotes": ["Generate manifests per sales channel when catalogs, language or currency differ.", "Use the sales channel context for public commerce capabilities."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/store-api/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/shopware/catalog-summary.txt"], "openapi": "/store-api/agent-layer/openapi.json", "mcp": "/store-api/agent-layer/mcp"},
+  "identity": {
+    "name": "Example Shopware Store",
+    "domain": "example.com",
+    "owner": "Example Merchant",
+    "contact": "commerce@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "commerce-platform",
+    "stack": [
+      "shopware",
+      "symfony",
+      "mysql",
+      "sales-channel-api"
+    ],
+    "integrationMode": "runtime",
+    "servingNotes": [
+      "Generate manifests per sales channel when catalogs, language or currency differ.",
+      "Use the sales channel context for public commerce capabilities."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/store-api/agent-layer/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/shopware/catalog-summary.txt"
+    ],
+    "openapi": "/store-api/agent-layer/openapi.json",
+    "mcp": "/store-api/agent-layer/mcp"
+  },
   "knowledge": [
-    {"id": "products", "type": "product-catalog", "source": "/ai/shopware/products.json", "refresh": "on index update"},
-    {"id": "sales-channel", "type": "storefront-context", "source": "/ai/shopware/sales-channel.json", "refresh": "on sales channel change"},
-    {"id": "legal", "type": "policy", "source": "/ai/shopware/legal.json", "refresh": "on policy change"}
+    {
+      "id": "products",
+      "type": "product-catalog",
+      "source": "/ai/shopware/products.json",
+      "refresh": "on index update"
+    },
+    {
+      "id": "sales-channel",
+      "type": "storefront-context",
+      "source": "/ai/shopware/sales-channel.json",
+      "refresh": "on sales channel change"
+    },
+    {
+      "id": "legal",
+      "type": "policy",
+      "source": "/ai/shopware/legal.json",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["store-api", "static"], "audit": ["query", "sales_channel"]},
-    {"id": "calculate-cart", "intent": "calculate_cart_total", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["store-api"], "audit": ["line_items", "currency"]},
-    {"id": "prepare-order", "intent": "prepare_order_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "user_confirmation"]},
-    {"id": "submit-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "terms_acceptance", "explicit_approval"]}
+    {
+      "id": "search-products",
+      "name": "Search products",
+      "description": "Find products.",
+      "intent": "find_products",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-products",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "store-api"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-products.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query",
+        "sales_channel"
+      ]
+    },
+    {
+      "id": "calculate-cart",
+      "name": "Calculate cart",
+      "description": "Calculate cart total.",
+      "intent": "calculate_cart_total",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/calculate-cart",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "store-api"
+        }
+      ],
+      "audit": [
+        "line_items",
+        "currency"
+      ]
+    },
+    {
+      "id": "prepare-order",
+      "name": "Prepare order",
+      "description": "Prepare order for review.",
+      "intent": "prepare_order_for_review",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/prepare-order.input.json",
+      "outputSchema": "/ai/schemas/prepare-order.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-order",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "order_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "submit-order",
+      "name": "Submit order",
+      "description": "Place order.",
+      "intent": "place_order",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/submit-order.input.json",
+      "outputSchema": "/ai/schemas/submit-order.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-order",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "order_summary",
+        "terms_acceptance",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Order submission requires explicit approval and terms acceptance when applicable.", "auth": "Customer-specific prices and account data require authenticated context.", "dataMinimization": "Public catalogs must exclude internal fields and inactive sales channel products.", "audit": "Preserve sales channel, language, currency and user confirmation for order actions."},
-  "extensionPoints": ["shopware-sales-channel-policy.json", "shopware-openapi.json", "cart-calculation-schema.json", "terms-consent-policy.json"]
+  "policies": {
+    "consent": "Order submission requires explicit approval and terms acceptance when applicable.",
+    "auth": "Customer-specific prices and account data require authenticated context.",
+    "dataMinimization": "Public catalogs must exclude internal fields and inactive sales channel products.",
+    "audit": "Preserve sales channel, language, currency and user confirmation for order actions."
+  },
+  "extensionPoints": [
+    "shopware-sales-channel-policy.json",
+    "shopware-openapi.json",
+    "cart-calculation-schema.json",
+    "terms-consent-policy.json"
+  ]
 }
-

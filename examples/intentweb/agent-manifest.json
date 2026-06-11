@@ -1,0 +1,170 @@
+{
+  "$schema": "../../rfc/schemas/agent-manifest.v0.1.schema.json",
+  "agentManifestVersion": "0.1-draft",
+  "id": "intentweb-ai",
+  "status": "example",
+  "templateKind": "public-project-site",
+  "identity": {
+    "name": "IntentWeb",
+    "domain": "intentweb.ai",
+    "owner": "IntentWeb Project",
+    "contact": "https://intentweb.ai/contact"
+  },
+  "platform": {
+    "type": "public-website",
+    "stack": ["html", "static-content", "http-api"],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Expose public project information through read-only HTML pages.",
+      "Use a server-side endpoint for contact requests."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
+    "llmContext": ["/llms.txt"]
+  },
+  "knowledge": [
+    {
+      "id": "site-overview",
+      "type": "summary",
+      "source": "/",
+      "refresh": "on publish"
+    },
+    {
+      "id": "agent-manifest-summary",
+      "type": "summary",
+      "source": "/agent-manifest",
+      "refresh": "on publish"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "read-intentweb-overview",
+      "name": "Read IntentWeb overview",
+      "description": "Read the public IntentWeb project overview.",
+      "intent": "understand_intentweb",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "html",
+          "url": "/",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": ["request_id"]
+    },
+    {
+      "id": "read-agentmanifest-summary",
+      "name": "Read AgentManifest summary",
+      "description": "Read the public AgentManifest concept summary.",
+      "intent": "understand_agentmanifest",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "html",
+          "url": "/agent-manifest",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": ["request_id"]
+    },
+    {
+      "id": "read-internet-draft-status",
+      "name": "Read Internet-Draft status",
+      "description": "Read the public status of the AgentManifest Internet-Draft-style proposal.",
+      "intent": "check_internet_draft_status",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "html",
+          "url": "/agent-manifest/draft-status",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": ["request_id"]
+    },
+    {
+      "id": "read-agentlayer-framework-status",
+      "name": "Read AgentLayer Framework status",
+      "description": "Read public information about AgentLayer Framework as one possible implementation path.",
+      "intent": "check_agentlayer_framework_status",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "html",
+          "url": "/agent-layer-framework",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": ["request_id"]
+    },
+    {
+      "id": "submit-contact-request",
+      "name": "Submit contact request",
+      "description": "Submit a contact request to the IntentWeb project.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-contact-request.input.json",
+      "outputSchema": "/ai/schemas/submit-contact-request.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/v1/contact",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits"
+        }
+      ],
+      "audit": ["input_summary", "user_confirmation", "timestamp"]
+    }
+  ],
+  "policies": {
+    "consent": "Contact requests require explicit confirmation of the submitted message and contact details.",
+    "auth": "Public read-only pages do not require authentication. Contact requests do not require account authentication.",
+    "dataMinimization": "Collect only contact fields required to respond to the request.",
+    "audit": "Contact requests should record input summary, user confirmation, timestamp, and correlation ID."
+  },
+  "extensionPoints": []
+}

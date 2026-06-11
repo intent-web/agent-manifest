@@ -3,21 +3,203 @@
   "id": "ghost-publication",
   "status": "example",
   "templateKind": "cms-ghost",
-  "identity": {"name": "Example Ghost Publication", "domain": "example.com", "owner": "Example Publisher", "contact": "editor@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "publishing-cms", "stack": ["ghost", "node.js", "content-api", "theme"], "integrationMode": "static-or-bridge", "servingNotes": ["Use the public Content API or generated static files for posts, pages, tags and authors.", "Keep members-only and paid content access rules explicit."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/ghost/publication-summary.txt"], "openapi": "/ai/ghost/openapi.json", "mcp": "/ai/ghost/mcp"},
+  "identity": {
+    "name": "Example Ghost Publication",
+    "domain": "example.com",
+    "owner": "Example Publisher",
+    "contact": "editor@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "publishing-cms",
+    "stack": [
+      "ghost",
+      "node.js",
+      "content-api",
+      "theme"
+    ],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Use the public Content API or generated static files for posts, pages, tags and authors.",
+      "Keep members-only and paid content access rules explicit."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/ghost/publication-summary.txt"
+    ],
+    "openapi": "/ai/ghost/openapi.json",
+    "mcp": "/ai/ghost/mcp"
+  },
   "knowledge": [
-    {"id": "posts", "type": "post-catalog", "source": "/ghost/api/content/posts/", "refresh": "on publish"},
-    {"id": "tags", "type": "taxonomy-catalog", "source": "/ghost/api/content/tags/", "refresh": "on tag update"},
-    {"id": "membership-policy", "type": "policy", "source": "/ai/ghost/membership-policy.json", "refresh": "on setting change"}
+    {
+      "id": "posts",
+      "type": "post-catalog",
+      "source": "/ghost/api/content/posts/",
+      "refresh": "on publish"
+    },
+    {
+      "id": "tags",
+      "type": "taxonomy-catalog",
+      "source": "/ghost/api/content/tags/",
+      "refresh": "on tag update"
+    },
+    {
+      "id": "membership-policy",
+      "type": "policy",
+      "source": "/ai/ghost/membership-policy.json",
+      "refresh": "on setting change"
+    }
   ],
   "capabilities": [
-    {"id": "search-public-posts", "intent": "find_public_articles", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["content-api", "static"], "audit": ["query"]},
-    {"id": "read-post", "intent": "read_public_article", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["content-api"], "audit": ["post_id"]},
-    {"id": "subscribe-newsletter", "intent": "subscribe_to_publication", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["email_hash", "user_confirmation"]},
-    {"id": "start-paid-membership", "intent": "start_paid_membership", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["hosted-checkout"], "audit": ["plan", "billing_terms", "explicit_approval"]}
+    {
+      "id": "search-public-posts",
+      "name": "Search public posts",
+      "description": "Find public articles.",
+      "intent": "find_public_articles",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-public-posts",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "content-api"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-public-posts.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "read-post",
+      "name": "Read post",
+      "description": "Read public article.",
+      "intent": "read_public_article",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/read-post",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "content-api"
+        }
+      ],
+      "audit": [
+        "post_id"
+      ]
+    },
+    {
+      "id": "subscribe-newsletter",
+      "name": "Subscribe newsletter",
+      "description": "Subscribe to publication.",
+      "intent": "subscribe_to_publication",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/subscribe-newsletter.input.json",
+      "outputSchema": "/ai/schemas/subscribe-newsletter.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/subscribe-newsletter",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "email_hash",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "start-paid-membership",
+      "name": "Start paid membership",
+      "description": "Start paid membership.",
+      "intent": "start_paid_membership",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/start-paid-membership.input.json",
+      "outputSchema": "/ai/schemas/start-paid-membership.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "hosted-checkout",
+          "url": "/checkout",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "plan",
+        "billing_terms",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Newsletter signup and membership actions require confirmation.", "auth": "Members-only content and account operations require authenticated member context.", "dataMinimization": "Do not expose member emails, paid content bodies or admin API keys.", "audit": "Membership actions require billing-term approval records."},
-  "extensionPoints": ["ghost-content-api-mapping.md", "membership-policy.json", "newsletter-consent-schema.json", "paid-content-access-policy.json"]
+  "policies": {
+    "consent": "Newsletter signup and membership actions require confirmation.",
+    "auth": "Members-only content and account operations require authenticated member context.",
+    "dataMinimization": "Do not expose member emails, paid content bodies or admin API keys.",
+    "audit": "Membership actions require billing-term approval records."
+  },
+  "extensionPoints": [
+    "ghost-content-api-mapping.md",
+    "membership-policy.json",
+    "newsletter-consent-schema.json",
+    "paid-content-access-policy.json"
+  ]
 }
-

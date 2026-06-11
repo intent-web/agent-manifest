@@ -3,19 +3,156 @@
   "id": "static-html-site",
   "status": "example",
   "templateKind": "framework-static-html",
-  "identity": {"name": "Example Static Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "static-website", "stack": ["html", "css", "static-hosting"], "integrationMode": "static", "servingNotes": ["Publish manifest and AI catalogs as static files.", "Use external forms or serverless functions for any state-changing capability."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/llms-full.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "identity": {
+    "name": "Example Static Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "static-website",
+    "stack": [
+      "html",
+      "css",
+      "static-hosting"
+    ],
+    "integrationMode": "static",
+    "servingNotes": [
+      "Publish manifest and AI catalogs as static files.",
+      "Use external forms or serverless functions for any state-changing capability."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/llms-full.txt"
+    ],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
   "knowledge": [
-    {"id": "pages", "type": "page-catalog", "source": "/ai/static/pages.json", "refresh": "on deploy"},
-    {"id": "services", "type": "service-catalog", "source": "/ai/static/services.json", "refresh": "on deploy"},
-    {"id": "policies", "type": "policy", "source": "/ai/static/policies.json", "refresh": "on deploy"}
+    {
+      "id": "pages",
+      "type": "page-catalog",
+      "source": "/ai/static/pages.json",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "services",
+      "type": "service-catalog",
+      "source": "/ai/static/services.json",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "policies",
+      "type": "policy",
+      "source": "/ai/static/policies.json",
+      "refresh": "on deploy"
+    }
   ],
   "capabilities": [
-    {"id": "read-site-summary", "intent": "understand_website", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["request_id"]},
-    {"id": "search-static-content", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["query"]},
-    {"id": "submit-external-form", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["external-form", "serverless-function"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+    {
+      "id": "read-site-summary",
+      "name": "Read site summary",
+      "description": "Understand website.",
+      "intent": "understand_website",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/read-site-summary.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "request_id"
+      ]
+    },
+    {
+      "id": "search-static-content",
+      "name": "Search static content",
+      "description": "Find public information.",
+      "intent": "find_public_information",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-static-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "submit-external-form",
+      "name": "Submit external form",
+      "description": "Submit contact request.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-external-form.input.json",
+      "outputSchema": "/ai/schemas/submit-external-form.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-external-form",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "external-form"
+        }
+      ],
+      "audit": [
+        "form_id",
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "External form submissions require confirmation.", "auth": "Static content is public; authenticated workflows require an external runtime.", "dataMinimization": "Do not publish private files or source-only metadata.", "audit": "External form or serverless providers must store audit logs for submissions."},
-  "extensionPoints": ["static-site-generator.md", "hosting-rewrite-policy.md", "page-catalog.json", "external-form-openapi.json"]
+  "policies": {
+    "consent": "External form submissions require confirmation.",
+    "auth": "Static content is public; authenticated workflows require an external runtime.",
+    "dataMinimization": "Do not publish private files or source-only metadata.",
+    "audit": "External form or serverless providers must store audit logs for submissions."
+  },
+  "extensionPoints": [
+    "static-site-generator.md",
+    "hosting-rewrite-policy.md",
+    "page-catalog.json",
+    "external-form-openapi.json"
+  ]
 }

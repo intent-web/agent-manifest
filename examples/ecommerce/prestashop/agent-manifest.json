@@ -3,21 +3,208 @@
   "id": "prestashop-store",
   "status": "example",
   "templateKind": "ecommerce-prestashop",
-  "identity": {"name": "Example PrestaShop Store", "domain": "example.com", "owner": "Example Merchant", "contact": "shop@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "self-hosted-ecommerce", "stack": ["prestashop", "php", "mysql", "theme", "modules"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Generate public catalogs from active products, categories, carriers and tax rules.", "Expose cart and order actions through a governed module, not raw admin endpoints."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/modules/agentlayer/manifest"], "llmContext": ["/llms.txt", "/ai/prestashop/catalog-summary.txt"], "openapi": "/modules/agentlayer/openapi.json", "mcp": "/modules/agentlayer/mcp"},
+  "identity": {
+    "name": "Example PrestaShop Store",
+    "domain": "example.com",
+    "owner": "Example Merchant",
+    "contact": "shop@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "self-hosted-ecommerce",
+    "stack": [
+      "prestashop",
+      "php",
+      "mysql",
+      "theme",
+      "modules"
+    ],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Generate public catalogs from active products, categories, carriers and tax rules.",
+      "Expose cart and order actions through a governed module, not raw admin endpoints."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/modules/agentlayer/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/prestashop/catalog-summary.txt"
+    ],
+    "openapi": "/modules/agentlayer/openapi.json",
+    "mcp": "/modules/agentlayer/mcp"
+  },
   "knowledge": [
-    {"id": "products", "type": "product-catalog", "source": "/api/agent/products", "refresh": "on product update"},
-    {"id": "categories", "type": "category-catalog", "source": "/api/agent/categories", "refresh": "on category update"},
-    {"id": "shipping-payment", "type": "commerce-policy", "source": "/ai/prestashop/checkout-policy.json", "refresh": "on module setting change"}
+    {
+      "id": "products",
+      "type": "product-catalog",
+      "source": "/api/agent/products",
+      "refresh": "on product update"
+    },
+    {
+      "id": "categories",
+      "type": "category-catalog",
+      "source": "/api/agent/categories",
+      "refresh": "on category update"
+    },
+    {
+      "id": "shipping-payment",
+      "type": "commerce-policy",
+      "source": "/ai/prestashop/checkout-policy.json",
+      "refresh": "on module setting change"
+    }
   ],
   "capabilities": [
-    {"id": "search-products", "intent": "find_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "prestashop-module-api"], "audit": ["query", "filters"]},
-    {"id": "check-stock", "intent": "check_stock_availability", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["prestashop-module-api"], "audit": ["product_id", "quantity"]},
-    {"id": "prepare-cart", "intent": "prepare_cart_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["cart_summary", "user_confirmation"]},
-    {"id": "place-order", "intent": "place_order", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["order_summary", "payment_method", "explicit_approval"]}
+    {
+      "id": "search-products",
+      "name": "Search products",
+      "description": "Find products.",
+      "intent": "find_products",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-products.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-products",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 2,
+          "schemaMode": "none",
+          "sourceAdapter": "prestashop-module-api"
+        }
+      ],
+      "audit": [
+        "query",
+        "filters"
+      ]
+    },
+    {
+      "id": "check-stock",
+      "name": "Check stock",
+      "description": "Check stock availability.",
+      "intent": "check_stock_availability",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/check-stock",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "prestashop-module-api"
+        }
+      ],
+      "audit": [
+        "product_id",
+        "quantity"
+      ]
+    },
+    {
+      "id": "prepare-cart",
+      "name": "Prepare cart",
+      "description": "Prepare cart for review.",
+      "intent": "prepare_cart_for_review",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/prepare-cart.input.json",
+      "outputSchema": "/ai/schemas/prepare-cart.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-cart",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "cart_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "place-order",
+      "name": "Place order",
+      "description": "Place order.",
+      "intent": "place_order",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/place-order.input.json",
+      "outputSchema": "/ai/schemas/place-order.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/place-order",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "order_summary",
+        "payment_method",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Show full item list, delivery method, tax, discounts and total before order approval.", "auth": "Customer profile, addresses and order history require customer authentication.", "dataMinimization": "Do not expose disabled products, supplier data or admin-only module settings.", "audit": "Critical order actions require immutable audit records."},
-  "extensionPoints": ["prestashop-module.md", "prestashop-openapi.json", "cart-schema.json", "carrier-policy.json"]
+  "policies": {
+    "consent": "Show full item list, delivery method, tax, discounts and total before order approval.",
+    "auth": "Customer profile, addresses and order history require customer authentication.",
+    "dataMinimization": "Do not expose disabled products, supplier data or admin-only module settings.",
+    "audit": "Critical order actions require immutable audit records."
+  },
+  "extensionPoints": [
+    "prestashop-module.md",
+    "prestashop-openapi.json",
+    "cart-schema.json",
+    "carrier-policy.json"
+  ]
 }
-

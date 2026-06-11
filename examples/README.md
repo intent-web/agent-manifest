@@ -5,8 +5,8 @@ CMS platforms, e-commerce systems and web frameworks.
 
 The examples are not final schemas. They are practical, concrete starting
 points that show how a website can describe itself to AI agents: identity,
-trusted knowledge, available capabilities, protocols, risk levels, consent
-requirements and audit expectations.
+trusted knowledge, available capabilities, structured bindings, risk levels,
+consent requirements and audit expectations.
 
 Each platform has its own folder and an `agent-manifest.json` file. The folder
 layout is designed so implementation guides, generated OpenAPI files, MCP
@@ -26,7 +26,7 @@ Each example uses the same high-level structure:
 | `platform` | Stack type, integration mode and deployment-specific serving notes. |
 | `discovery` | Suggested locations for the manifest, LLM context, OpenAPI and MCP endpoints. |
 | `knowledge` | Public, trusted sources an agent may use for understanding the site. |
-| `capabilities` | Agent-usable tasks with intent, risk, state change, consent and protocol metadata. |
+| `capabilities` | Agent-usable tasks with intent, risk, state change, consent and binding metadata. |
 | `policies` | Consent, authentication, data minimization and audit rules. |
 | `extensionPoints` | Future files that can be added beside the manifest as documentation grows. |
 

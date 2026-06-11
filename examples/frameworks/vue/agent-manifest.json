@@ -3,20 +3,156 @@
   "id": "vue-static-or-spa-site",
   "status": "example",
   "templateKind": "framework-vue",
-  "identity": {"name": "Example Vue Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "frontend-framework", "stack": ["vue", "vite", "static-hosting-or-spa"], "integrationMode": "static", "servingNotes": ["Generate AI files during build into the final public output directory.", "Configure hosting so /.well-known/agent-manifest.json is served as a file and not redirected to index.html."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/llms-full.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "identity": {
+    "name": "Example Vue Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "frontend-framework",
+    "stack": [
+      "vue",
+      "vite",
+      "static-hosting-or-spa"
+    ],
+    "integrationMode": "static",
+    "servingNotes": [
+      "Generate AI files during build into the final public output directory.",
+      "Configure hosting so /.well-known/agent-manifest.json is served as a file and not redirected to index.html."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/llms-full.txt"
+    ],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
   "knowledge": [
-    {"id": "routes", "type": "route-catalog", "source": "/ai/vue/routes.json", "refresh": "on build"},
-    {"id": "static-content", "type": "content-catalog", "source": "/ai/vue/content.json", "refresh": "on build"},
-    {"id": "forms", "type": "form-catalog", "source": "/ai/vue/forms.json", "refresh": "on build"}
+    {
+      "id": "routes",
+      "type": "route-catalog",
+      "source": "/ai/vue/routes.json",
+      "refresh": "on build"
+    },
+    {
+      "id": "static-content",
+      "type": "content-catalog",
+      "source": "/ai/vue/content.json",
+      "refresh": "on build"
+    },
+    {
+      "id": "forms",
+      "type": "form-catalog",
+      "source": "/ai/vue/forms.json",
+      "refresh": "on build"
+    }
   ],
   "capabilities": [
-    {"id": "read-route-summary", "intent": "understand_public_route", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["route"]},
-    {"id": "search-site-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["query"]},
-    {"id": "submit-lead-form", "intent": "submit_lead_or_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["serverless-function", "external-api"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+    {
+      "id": "read-route-summary",
+      "name": "Read route summary",
+      "description": "Understand public route.",
+      "intent": "understand_public_route",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/read-route-summary.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "route"
+      ]
+    },
+    {
+      "id": "search-site-content",
+      "name": "Search site content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-site-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "submit-lead-form",
+      "name": "Submit lead form",
+      "description": "Submit lead or contact request.",
+      "intent": "submit_lead_or_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-lead-form.input.json",
+      "outputSchema": "/ai/schemas/submit-lead-form.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-lead-form",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "serverless-function"
+        }
+      ],
+      "audit": [
+        "form_id",
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Form submissions require user confirmation.", "auth": "Static discovery is public; authenticated API calls require separate token handling.", "dataMinimization": "Do not include secrets from Vite environment variables in generated files.", "audit": "Serverless or external actions should store submission audit logs."},
-  "extensionPoints": ["vite-plugin.md", "routes-catalog.json", "spa-fallback-config.md", "form-action-openapi.json"]
+  "policies": {
+    "consent": "Form submissions require user confirmation.",
+    "auth": "Static discovery is public; authenticated API calls require separate token handling.",
+    "dataMinimization": "Do not include secrets from Vite environment variables in generated files.",
+    "audit": "Serverless or external actions should store submission audit logs."
+  },
+  "extensionPoints": [
+    "vite-plugin.md",
+    "routes-catalog.json",
+    "spa-fallback-config.md",
+    "form-action-openapi.json"
+  ]
 }
-

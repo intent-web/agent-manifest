@@ -13,7 +13,11 @@
   },
   "platform": {
     "type": "ecommerce-website",
-    "stack": ["commerce-platform", "openapi", "mcp"],
+    "stack": [
+      "commerce-platform",
+      "openapi",
+      "mcp"
+    ],
     "integrationMode": "bridge-or-runtime",
     "servingNotes": [
       "Expose product knowledge as public catalog data.",
@@ -21,8 +25,13 @@
     ]
   },
   "discovery": {
-    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
-    "llmContext": ["/llms.txt"],
+    "recommendedLocations": [
+      "/.well-known/agent.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt"
+    ],
     "openapi": "/ai/openapi.json",
     "mcp": "/ai/mcp"
   },
@@ -44,34 +53,121 @@
     {
       "id": "search-products",
       "name": "Search products",
+      "description": "Find products.",
       "intent": "find_products",
+      "type": "query",
       "risk": "low",
       "stateChange": false,
+      "consentMode": "none",
       "requiresConsent": false,
-      "protocols": ["static", "openapi", "mcp"],
-      "audit": ["query", "result_count"]
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-products.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "findProducts",
+          "priority": 2,
+          "schemaMode": "external"
+        },
+        {
+          "kind": "mcp",
+          "server": "/ai/mcp",
+          "tool": "find_products",
+          "priority": 3,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "query",
+        "result_count"
+      ]
     },
     {
       "id": "prepare-checkout",
       "name": "Prepare checkout",
+      "description": "Prepare checkout for review.",
       "intent": "prepare_checkout_for_review",
+      "type": "action",
       "risk": "medium",
       "stateChange": true,
+      "consentMode": "explicit",
       "requiresConsent": true,
       "requiresAuthentication": true,
-      "protocols": ["openapi", "mcp"],
-      "audit": ["cart_summary", "user_confirmation", "timestamp"]
+      "inputSchema": "/ai/schemas/prepare-checkout.input.json",
+      "outputSchema": "/ai/schemas/prepare-checkout.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "prepareCheckoutForReview",
+          "priority": 1,
+          "schemaMode": "external"
+        },
+        {
+          "kind": "mcp",
+          "server": "/ai/mcp",
+          "tool": "prepare_checkout_for_review",
+          "priority": 2,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "cart_summary",
+        "user_confirmation",
+        "timestamp"
+      ]
     },
     {
       "id": "place-order",
       "name": "Place order",
+      "description": "Place order.",
       "intent": "place_order",
+      "type": "transaction",
       "risk": "critical",
       "stateChange": true,
+      "consentMode": "explicit",
       "requiresConsent": true,
       "requiresAuthentication": true,
-      "protocols": ["hosted-checkout"],
-      "audit": ["order_summary", "explicit_approval", "payment_reference", "timestamp"]
+      "inputSchema": "/ai/schemas/place-order.input.json",
+      "outputSchema": "/ai/schemas/place-order.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "hosted-checkout",
+          "url": "/checkout",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "order_summary",
+        "explicit_approval",
+        "payment_reference",
+        "timestamp"
+      ]
     }
   ],
   "policies": {
@@ -80,5 +176,9 @@
     "dataMinimization": "Expose only public product data and collect only checkout fields required for fulfillment.",
     "audit": "Critical order actions require immutable audit records."
   },
-  "extensionPoints": ["openapi.example.json", "mcp-server.example.json", "policy.example.json"]
+  "extensionPoints": [
+    "openapi.example.json",
+    "mcp-server.example.json",
+    "policy.example.json"
+  ]
 }

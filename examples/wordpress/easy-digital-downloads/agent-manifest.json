@@ -3,21 +3,203 @@
   "id": "wordpress-easy-digital-downloads-store",
   "status": "example",
   "templateKind": "wordpress-digital-commerce",
-  "identity": {"name": "Example Digital Downloads Store", "domain": "example.com", "owner": "Example Digital Merchant", "contact": "downloads@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "wordpress-ecommerce-plugin", "stack": ["wordpress", "easy-digital-downloads", "php", "mysql"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Expose only published downloads and public licensing information.", "Treat purchase, license generation and account access as critical or authenticated capabilities."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/wp-json/agent-layer/v1/manifest"], "llmContext": ["/llms.txt", "/ai/downloads/catalog-summary.txt"], "openapi": "/wp-json/agent-layer/v1/openapi.json", "mcp": "/wp-json/agent-layer/v1/mcp"},
+  "identity": {
+    "name": "Example Digital Downloads Store",
+    "domain": "example.com",
+    "owner": "Example Digital Merchant",
+    "contact": "downloads@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "wordpress-ecommerce-plugin",
+    "stack": [
+      "wordpress",
+      "easy-digital-downloads",
+      "php",
+      "mysql"
+    ],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Expose only published downloads and public licensing information.",
+      "Treat purchase, license generation and account access as critical or authenticated capabilities."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/wp-json/agent-layer/v1/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/downloads/catalog-summary.txt"
+    ],
+    "openapi": "/wp-json/agent-layer/v1/openapi.json",
+    "mcp": "/wp-json/agent-layer/v1/mcp"
+  },
   "knowledge": [
-    {"id": "downloads", "type": "digital-product-catalog", "source": "/ai/downloads/catalog.json", "refresh": "on download update"},
-    {"id": "license-policy", "type": "policy", "source": "/license-policy", "refresh": "on policy change"},
-    {"id": "refund-policy", "type": "policy", "source": "/refund-policy", "refresh": "on policy change"}
+    {
+      "id": "downloads",
+      "type": "digital-product-catalog",
+      "source": "/ai/downloads/catalog.json",
+      "refresh": "on download update"
+    },
+    {
+      "id": "license-policy",
+      "type": "policy",
+      "source": "/license-policy",
+      "refresh": "on policy change"
+    },
+    {
+      "id": "refund-policy",
+      "type": "policy",
+      "source": "/refund-policy",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "search-downloads", "intent": "find_digital_products", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "wordpress-rest"], "audit": ["query"]},
-    {"id": "compare-licenses", "intent": "compare_license_options", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["download_ids"]},
-    {"id": "prepare-purchase", "intent": "prepare_digital_purchase", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["purchase_summary", "user_confirmation"]},
-    {"id": "complete-purchase", "intent": "buy_digital_product", "risk": "critical", "stateChange": true, "requiresConsent": true, "protocols": ["agent-action-gateway"], "audit": ["payment_summary", "license_terms", "explicit_approval"]}
+    {
+      "id": "search-downloads",
+      "name": "Search downloads",
+      "description": "Find digital products.",
+      "intent": "find_digital_products",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-downloads.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-downloads",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 2,
+          "schemaMode": "none",
+          "sourceAdapter": "wordpress-rest"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "compare-licenses",
+      "name": "Compare licenses",
+      "description": "Compare license options.",
+      "intent": "compare_license_options",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/compare-licenses.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "download_ids"
+      ]
+    },
+    {
+      "id": "prepare-purchase",
+      "name": "Prepare purchase",
+      "description": "Prepare digital purchase.",
+      "intent": "prepare_digital_purchase",
+      "type": "transaction",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/prepare-purchase.input.json",
+      "outputSchema": "/ai/schemas/prepare-purchase.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-purchase",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "purchase_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "complete-purchase",
+      "name": "Complete purchase",
+      "description": "Buy digital product.",
+      "intent": "buy_digital_product",
+      "type": "transaction",
+      "risk": "critical",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/complete-purchase.input.json",
+      "outputSchema": "/ai/schemas/complete-purchase.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/complete-purchase",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "agent-action-gateway"
+        }
+      ],
+      "audit": [
+        "payment_summary",
+        "license_terms",
+        "explicit_approval"
+      ]
+    }
   ],
-  "policies": {"consent": "Show license terms, renewal behavior and refund limits before purchase.", "auth": "Download links, purchase history and license keys require authenticated customer context.", "dataMinimization": "Never expose private download URLs in public knowledge files.", "audit": "Purchases and license changes require durable audit records."},
-  "extensionPoints": ["download-catalog.json", "license-schema.json", "edd-openapi.json", "download-access-policy.json"]
+  "policies": {
+    "consent": "Show license terms, renewal behavior and refund limits before purchase.",
+    "auth": "Download links, purchase history and license keys require authenticated customer context.",
+    "dataMinimization": "Never expose private download URLs in public knowledge files.",
+    "audit": "Purchases and license changes require durable audit records."
+  },
+  "extensionPoints": [
+    "download-catalog.json",
+    "license-schema.json",
+    "edd-openapi.json",
+    "download-access-policy.json"
+  ]
 }
-

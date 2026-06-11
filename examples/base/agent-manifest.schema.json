@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://intentweb.dev/schemas/agent-manifest-0.1-draft.schema.json",
-  "title": "AgentManifest",
-  "description": "Draft JSON Schema for an IntentWeb AgentManifest. The schema defines the core machine-readable contract a website can expose to AI agents: identity, platform, discovery, knowledge, capabilities, policies and extension points.",
+  "$id": "https://intentweb.dev/schemas/agent-manifest.v0.1.schema.json",
+  "title": "AgentManifest v0.1 Draft",
+  "description": "Canonical JSON Schema for the experimental IntentWeb AgentManifest v0.1 draft. An AgentManifest is a machine-readable website contract for AI agents that describes identity, platform, discovery, trusted knowledge, capabilities, policies, and extension points.",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -25,12 +25,12 @@
     "agentManifestVersion": {
       "type": "string",
       "const": "0.1-draft",
-      "description": "AgentManifest draft version used by this file."
+      "description": "Version of the AgentManifest draft used by this document."
     },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9._-]*$",
-      "description": "Stable manifest identifier. Prefer lowercase slugs."
+      "description": "Stable manifest identifier. Use a lowercase slug that remains stable across deployments."
     },
     "status": {
       "type": "string",
@@ -40,7 +40,7 @@
     "templateKind": {
       "type": "string",
       "minLength": 1,
-      "description": "Template or platform family, for example default, cms-wordpress, ecommerce-prestashop or framework-vue."
+      "description": "Template or platform family represented by this manifest, such as default, cms-wordpress, ecommerce-shopify, or framework-nextjs."
     },
     "identity": {
       "$ref": "#/$defs/identity"
@@ -54,6 +54,7 @@
     "knowledge": {
       "type": "array",
       "minItems": 1,
+      "description": "Trusted public knowledge sources that agents may use when answering or planning.",
       "items": {
         "$ref": "#/$defs/knowledgeSource"
       }
@@ -61,6 +62,7 @@
     "capabilities": {
       "type": "array",
       "minItems": 1,
+      "description": "Business or site capabilities that agents may reason about or invoke through declared bindings.",
       "items": {
         "$ref": "#/$defs/capability"
       }
@@ -70,7 +72,7 @@
     },
     "extensionPoints": {
       "type": "array",
-      "description": "Future files that can be added beside the manifest, such as OpenAPI, MCP, catalogs, policy documents or validation reports.",
+      "description": "Optional related files, documents, catalogs, schemas, OpenAPI descriptions, MCP descriptions, policy documents, validation reports, or implementation notes.",
       "items": {
         "type": "string",
         "minLength": 1
@@ -83,11 +85,12 @@
       "type": "object",
       "additionalProperties": true,
       "required": ["name", "domain", "owner", "contact"],
+      "description": "Public identity of the website, organization, store, service, or application represented by the manifest.",
       "properties": {
         "name": {
           "type": "string",
           "minLength": 1,
-          "description": "Public name of the website, organization, store or application."
+          "description": "Public name of the website, organization, store, or application."
         },
         "domain": {
           "type": "string",
@@ -97,12 +100,12 @@
         "owner": {
           "type": "string",
           "minLength": 1,
-          "description": "Legal or operational owner of the website."
+          "description": "Legal or operational owner responsible for the website."
         },
         "contact": {
           "type": "string",
           "minLength": 1,
-          "description": "Public contact address, email or URL for manifest-related questions."
+          "description": "Public contact email address or URL for manifest-related questions."
         },
         "jurisdiction": {
           "type": "string",
@@ -114,20 +117,21 @@
       "type": "object",
       "additionalProperties": true,
       "required": ["type", "stack", "integrationMode", "servingNotes"],
+      "description": "Implementation context for the website and the way it exposes the agent layer.",
       "properties": {
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "Platform category, such as cms, frontend-framework, hosted-ecommerce or server-rendered-website."
+          "description": "Platform category, such as generic-website, cms, frontend-framework, hosted-ecommerce, or server-rendered-website."
         },
         "stack": {
           "type": "array",
           "minItems": 1,
+          "description": "Technologies, products, frameworks, or runtime components used by the website.",
           "items": {
             "type": "string",
             "minLength": 1
-          },
-          "description": "Technologies, products or runtime components used by the website."
+          }
         },
         "integrationMode": {
           "type": "string",
@@ -139,16 +143,16 @@
             "static-or-runtime",
             "bridge-or-runtime"
           ],
-          "description": "How the site exposes the agent layer."
+          "description": "How the site exposes the agent layer: static files, bridge endpoints, runtime services, or an allowed combination."
         },
         "servingNotes": {
           "type": "array",
           "minItems": 1,
+          "description": "Platform-specific deployment notes, routing constraints, or serving requirements for the manifest and related files.",
           "items": {
             "type": "string",
             "minLength": 1
-          },
-          "description": "Platform-specific deployment notes, routing traps and serving requirements."
+          }
         }
       }
     },
@@ -156,27 +160,30 @@
       "type": "object",
       "additionalProperties": true,
       "required": ["recommendedLocations"],
+      "description": "Locations and related resources that help agents discover and interpret the manifest.",
       "properties": {
         "recommendedLocations": {
           "type": "array",
           "minItems": 1,
+          "description": "Preferred paths or URLs where agents should look for this manifest.",
           "items": {
             "$ref": "#/$defs/pathOrUrl"
-          },
-          "description": "Where agents should look for the manifest."
+          }
         },
         "llmContext": {
           "type": "array",
+          "description": "Optional LLM-readable context files such as /llms.txt or /llms-full.txt.",
           "items": {
             "$ref": "#/$defs/pathOrUrl"
-          },
-          "description": "LLM-readable context files such as llms.txt or llms-full.txt."
+          }
         },
         "openapi": {
-          "$ref": "#/$defs/pathOrUrl"
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Optional path or URL for an OpenAPI description that binds capabilities to HTTP operations."
         },
         "mcp": {
-          "$ref": "#/$defs/pathOrUrl"
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Optional path or URL for MCP server metadata or connection information."
         }
       }
     },
@@ -184,6 +191,7 @@
       "type": "object",
       "additionalProperties": true,
       "required": ["id", "type", "source"],
+      "description": "A trusted knowledge source exposed by the website for agent use.",
       "properties": {
         "id": {
           "type": "string",
@@ -193,14 +201,15 @@
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "Knowledge source type, such as catalog, policy, summary, product-catalog, route-catalog or content-catalog."
+          "description": "Knowledge source type, such as summary, catalog, product-catalog, route-catalog, content-catalog, fulfillment-policy, or policy."
         },
         "source": {
-          "$ref": "#/$defs/pathOrUrl"
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Path or URL for the knowledge source."
         },
         "refresh": {
           "type": "string",
-          "description": "Refresh trigger or cadence, such as on deploy, daily or on publish."
+          "description": "Refresh trigger or cadence, such as on deploy, on publish, daily, or on policy change."
         }
       }
     },
@@ -210,11 +219,17 @@
       "required": [
         "id",
         "intent",
+        "name",
+        "description",
         "risk",
+        "type",
         "stateChange",
+        "consentMode",
         "requiresConsent",
-        "protocols"
+        "requiresAuthentication",
+        "bindings"
       ],
+      "description": "A capability that expresses what an agent may understand, prepare, or invoke on behalf of a user.",
       "properties": {
         "id": {
           "type": "string",
@@ -227,7 +242,7 @@
         },
         "description": {
           "type": "string",
-          "description": "Human-readable capability description."
+          "description": "Human-readable explanation of the capability."
         },
         "intent": {
           "type": "string",
@@ -237,36 +252,65 @@
         "risk": {
           "type": "string",
           "enum": ["low", "medium", "high", "critical"],
-          "description": "Risk level for agent reasoning and consent behavior."
+          "description": "Risk level for agent reasoning, consent behavior, audit, and policy enforcement."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["resource", "query", "action", "transaction", "conversation", "handoff"],
+          "description": "Semantic capability type. Core values are resource, query, action, transaction, conversation, and handoff."
         },
         "stateChange": {
           "type": "boolean",
-          "description": "Whether this capability creates, changes or commits business state."
+          "description": "Whether this capability creates, changes, commits, deletes, or otherwise mutates business state."
+        },
+        "consentMode": {
+          "type": "string",
+          "enum": ["none", "implicit", "explicit", "step_up", "human_review"],
+          "description": "Normative consent mode for this capability. requiresConsent is retained for compatibility."
         },
         "requiresConsent": {
           "type": "boolean",
-          "description": "Whether the user must confirm before execution."
+          "description": "Compatibility boolean indicating whether user consent is required before this capability is executed. consentMode is the expressive normative field."
         },
         "requiresAuthentication": {
           "type": "boolean",
-          "description": "Whether authenticated user context is required."
+          "description": "Whether authenticated user context is required before this capability can be executed."
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/schemaRefOrObject",
+          "description": "Canonical semantic input contract for this capability."
+        },
+        "outputSchema": {
+          "$ref": "#/$defs/schemaRefOrObject",
+          "description": "Canonical semantic output contract for this capability."
+        },
+        "enforcement": {
+          "$ref": "#/$defs/enforcement",
+          "description": "Declared enforcement expectations for validation, policy, consent, authentication, audit, and idempotency."
+        },
+        "bindings": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Concrete access or execution mechanisms for this capability. Bindings describe how to invoke or read the capability without weakening capability-level safety requirements.",
+          "items": {
+            "$ref": "#/$defs/capabilityBinding"
+          }
         },
         "protocols": {
           "type": "array",
-          "minItems": 1,
+          "description": "Deprecated legacy list of protocol names retained for compatibility. New manifests SHOULD use bindings and SHOULD NOT rely on protocols.",
           "items": {
             "type": "string",
             "minLength": 1
-          },
-          "description": "Supported execution or discovery protocols, such as static, openapi, mcp, controller, route-handler or agent-action-gateway."
+          }
         },
         "audit": {
           "type": "array",
+          "description": "Audit fields expected for this capability.",
           "items": {
             "type": "string",
             "minLength": 1
-          },
-          "description": "Audit fields expected for this capability."
+          }
         }
       },
       "allOf": [
@@ -286,11 +330,157 @@
               },
               "stateChange": {
                 "const": true
+              },
+              "consentMode": {
+                "enum": ["explicit", "step_up", "human_review"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "transaction"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "requiresConsent": {
+                "const": true
+              },
+              "stateChange": {
+                "const": true
               }
             }
           }
         }
       ]
+    },
+    "capabilityBinding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind", "priority", "schemaMode"],
+      "description": "A concrete mechanism for reading, accessing, or executing a capability. Core kinds are html, static, http, openapi, mcp, and hosted-checkout; extension kinds are allowed.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Binding kind. Core values are html, static, http, openapi, mcp, and hosted-checkout."
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Lower numbers are preferred when the agent supports multiple bindings."
+        },
+        "fallbackOnly": {
+          "type": "boolean",
+          "description": "Whether this binding should be used only when preferred bindings are unavailable."
+        },
+        "schemaMode": {
+          "type": "string",
+          "enum": ["none", "inherits", "external", "overrides", "mapped"],
+          "description": "How this binding relates to capability-level schemas."
+        },
+        "url": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "HTML, static, hosted, or other URL for this binding."
+        },
+        "endpoint": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "HTTP endpoint for this binding."
+        },
+        "method": {
+          "$ref": "#/$defs/httpMethod",
+          "description": "HTTP method used by this binding."
+        },
+        "contentType": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Expected request or response content type."
+        },
+        "spec": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "OpenAPI or other external machine-readable specification."
+        },
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "OpenAPI operation identifier mapped to this capability."
+        },
+        "server": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "MCP server URL or path."
+        },
+        "tool": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MCP tool name mapped to this capability."
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/schemaRefOrObject",
+          "description": "Binding-specific input schema when schemaMode is overrides or mapped."
+        },
+        "outputSchema": {
+          "$ref": "#/$defs/schemaRefOrObject",
+          "description": "Binding-specific output schema when schemaMode is overrides or mapped."
+        },
+        "inputMapping": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Mapping document from canonical capability input to binding input."
+        },
+        "outputMapping": {
+          "$ref": "#/$defs/pathOrUrl",
+          "description": "Mapping document from binding output to canonical capability output."
+        }
+      }
+    },
+    "enforcement": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Declared enforcement locations and booleans for a capability.",
+      "properties": {
+        "inputValidation": {
+          "$ref": "#/$defs/enforcementLocation"
+        },
+        "policy": {
+          "$ref": "#/$defs/enforcementLocation"
+        },
+        "consent": {
+          "$ref": "#/$defs/enforcementLocation"
+        },
+        "auth": {
+          "$ref": "#/$defs/enforcementLocation"
+        },
+        "audit": {
+          "type": "boolean"
+        },
+        "idempotency": {
+          "type": "boolean"
+        }
+      }
+    },
+    "enforcementLocation": {
+      "type": "string",
+      "enum": ["server", "client", "none", "not-declared"]
+    },
+    "schemaRefOrObject": {
+      "description": "A path, URL, or inline JSON Schema object.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/pathOrUrl"
+        },
+        {
+          "type": "object",
+          "additionalProperties": true
+        }
+      ]
+    },
+    "httpMethod": {
+      "type": "string",
+      "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
     },
     "policies": {
       "type": "object",
@@ -298,6 +488,7 @@
         "type": ["string", "array", "object", "boolean", "number", "null"]
       },
       "required": ["consent", "auth", "dataMinimization", "audit"],
+      "description": "Human-readable policy requirements that agents and protocol implementations must respect.",
       "properties": {
         "consent": {
           "type": "string",
@@ -324,6 +515,7 @@
     "pathOrUrl": {
       "type": "string",
       "minLength": 1,
+      "description": "Absolute site path, relative file path, or URI.",
       "anyOf": [
         {
           "pattern": "^/"

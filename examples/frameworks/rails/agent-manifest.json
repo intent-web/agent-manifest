@@ -3,20 +3,179 @@
   "id": "rails-site",
   "status": "example",
   "templateKind": "framework-rails",
-  "identity": {"name": "Example Rails App", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "ruby-web-framework", "stack": ["ruby-on-rails", "controllers", "active-record", "views-or-api"], "integrationMode": "bridge-or-runtime", "servingNotes": ["Serve manifest through public files or a controller returning JSON.", "Generate capability metadata from routes, controllers, serializers and authorization policies."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent/manifest"], "llmContext": ["/llms.txt", "/ai/rails/site-summary.txt"], "openapi": "/agent/openapi.json", "mcp": "/agent/mcp"},
+  "identity": {
+    "name": "Example Rails App",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "ruby-web-framework",
+    "stack": [
+      "ruby-on-rails",
+      "controllers",
+      "active-record",
+      "views-or-api"
+    ],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": [
+      "Serve manifest through public files or a controller returning JSON.",
+      "Generate capability metadata from routes, controllers, serializers and authorization policies."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/rails/site-summary.txt"
+    ],
+    "openapi": "/agent/openapi.json",
+    "mcp": "/agent/mcp"
+  },
   "knowledge": [
-    {"id": "routes", "type": "route-catalog", "source": "/ai/rails/routes.json", "refresh": "on deploy"},
-    {"id": "resources", "type": "resource-catalog", "source": "/ai/rails/resources.json", "refresh": "on deploy"},
-    {"id": "policies", "type": "policy", "source": "/ai/rails/policies.json", "refresh": "on policy change"}
+    {
+      "id": "routes",
+      "type": "route-catalog",
+      "source": "/ai/rails/routes.json",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "resources",
+      "type": "resource-catalog",
+      "source": "/ai/rails/resources.json",
+      "refresh": "on deploy"
+    },
+    {
+      "id": "policies",
+      "type": "policy",
+      "source": "/ai/rails/policies.json",
+      "refresh": "on policy change"
+    }
   ],
   "capabilities": [
-    {"id": "search-public-resources", "intent": "find_public_information", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["controller", "static"], "audit": ["query"]},
-    {"id": "submit-request", "intent": "submit_business_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["controller"], "audit": ["input_summary", "user_confirmation"]},
-    {"id": "execute-domain-action", "intent": "execute_business_action", "risk": "high", "stateChange": true, "requiresConsent": true, "protocols": ["controller", "active-job"], "audit": ["action", "input_summary", "explicit_confirmation"]}
+    {
+      "id": "search-public-resources",
+      "name": "Search public resources",
+      "description": "Find public information.",
+      "intent": "find_public_information",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-public-resources",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "controller"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-public-resources.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "submit-request",
+      "name": "Submit request",
+      "description": "Submit business request.",
+      "intent": "submit_business_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-request.input.json",
+      "outputSchema": "/ai/schemas/submit-request.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-request",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "controller"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "execute-domain-action",
+      "name": "Execute domain action",
+      "description": "Execute business action.",
+      "intent": "execute_business_action",
+      "type": "action",
+      "risk": "high",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": true,
+      "inputSchema": "/ai/schemas/execute-domain-action.input.json",
+      "outputSchema": "/ai/schemas/execute-domain-action.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "server",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/execute-domain-action",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "controller"
+        }
+      ],
+      "audit": [
+        "action",
+        "input_summary",
+        "explicit_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "State-changing controller actions require confirmation.", "auth": "Pundit/CanCanCan or custom authorization must map to capabilities.", "dataMinimization": "Do not expose credentials, internal model attributes or admin routes.", "audit": "Use ActiveSupport notifications, jobs or audit models for agent actions."},
-  "extensionPoints": ["rails-engine.md", "route-export.json", "authorization-mapping.json", "active-job-audit-policy.md"]
+  "policies": {
+    "consent": "State-changing controller actions require confirmation.",
+    "auth": "Pundit/CanCanCan or custom authorization must map to capabilities.",
+    "dataMinimization": "Do not expose credentials, internal model attributes or admin routes.",
+    "audit": "Use ActiveSupport notifications, jobs or audit models for agent actions."
+  },
+  "extensionPoints": [
+    "rails-engine.md",
+    "route-export.json",
+    "authorization-mapping.json",
+    "active-job-audit-policy.md"
+  ]
 }
-

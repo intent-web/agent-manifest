@@ -3,20 +3,179 @@
   "id": "nextjs-site",
   "status": "example",
   "templateKind": "framework-nextjs",
-  "identity": {"name": "Example Next.js Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "react-ssr-framework", "stack": ["next.js", "react", "app-router-or-pages-router", "api-routes"], "integrationMode": "static-or-runtime", "servingNotes": ["Place static manifests in public/ or implement route handlers with application/json.", "Generate route and content catalogs during build or ISR refresh."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json", "/api/agent/manifest"], "llmContext": ["/llms.txt", "/llms-full.txt"], "openapi": "/api/agent/openapi.json", "mcp": "/api/agent/mcp"},
+  "identity": {
+    "name": "Example Next.js Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "react-ssr-framework",
+    "stack": [
+      "next.js",
+      "react",
+      "app-router-or-pages-router",
+      "api-routes"
+    ],
+    "integrationMode": "static-or-runtime",
+    "servingNotes": [
+      "Place static manifests in public/ or implement route handlers with application/json.",
+      "Generate route and content catalogs during build or ISR refresh."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json",
+      "/api/agent/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/llms-full.txt"
+    ],
+    "openapi": "/api/agent/openapi.json",
+    "mcp": "/api/agent/mcp"
+  },
   "knowledge": [
-    {"id": "routes", "type": "route-catalog", "source": "/ai/nextjs/routes.json", "refresh": "on build or ISR"},
-    {"id": "content", "type": "content-catalog", "source": "/ai/nextjs/content.json", "refresh": "on build or CMS webhook"},
-    {"id": "actions", "type": "server-action-catalog", "source": "/ai/nextjs/actions.json", "refresh": "on build"}
+    {
+      "id": "routes",
+      "type": "route-catalog",
+      "source": "/ai/nextjs/routes.json",
+      "refresh": "on build or ISR"
+    },
+    {
+      "id": "content",
+      "type": "content-catalog",
+      "source": "/ai/nextjs/content.json",
+      "refresh": "on build or CMS webhook"
+    },
+    {
+      "id": "actions",
+      "type": "server-action-catalog",
+      "source": "/ai/nextjs/actions.json",
+      "refresh": "on build"
+    }
   ],
   "capabilities": [
-    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "route-handler"], "audit": ["query"]},
-    {"id": "request-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["route-handler", "server-action"], "audit": ["input_summary", "user_confirmation"]},
-    {"id": "prepare-transaction", "intent": "prepare_transaction_for_review", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["route-handler"], "audit": ["transaction_summary", "user_confirmation"]}
+    {
+      "id": "search-content",
+      "name": "Search content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-content",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 2,
+          "schemaMode": "none",
+          "sourceAdapter": "route-handler"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "request-contact",
+      "name": "Request contact",
+      "description": "Submit contact request.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/request-contact.input.json",
+      "outputSchema": "/ai/schemas/request-contact.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/request-contact",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "route-handler"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation"
+      ]
+    },
+    {
+      "id": "prepare-transaction",
+      "name": "Prepare transaction",
+      "description": "Prepare transaction for review.",
+      "intent": "prepare_transaction_for_review",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/prepare-transaction.input.json",
+      "outputSchema": "/ai/schemas/prepare-transaction.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/prepare-transaction",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "route-handler"
+        }
+      ],
+      "audit": [
+        "transaction_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Route handlers and server actions that submit data require confirmation.", "auth": "Session-specific and server-only data require authenticated context.", "dataMinimization": "Do not leak environment variables or server component internals.", "audit": "Store state-changing action logs in backend storage, not public static files."},
-  "extensionPoints": ["nextjs-route-handlers.md", "server-actions-policy.json", "isr-refresh-policy.json", "next-openapi.json"]
+  "policies": {
+    "consent": "Route handlers and server actions that submit data require confirmation.",
+    "auth": "Session-specific and server-only data require authenticated context.",
+    "dataMinimization": "Do not leak environment variables or server component internals.",
+    "audit": "Store state-changing action logs in backend storage, not public static files."
+  },
+  "extensionPoints": [
+    "nextjs-route-handlers.md",
+    "server-actions-policy.json",
+    "isr-refresh-policy.json",
+    "next-openapi.json"
+  ]
 }
-

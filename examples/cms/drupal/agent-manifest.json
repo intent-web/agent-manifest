@@ -3,20 +3,169 @@
   "id": "drupal-site",
   "status": "example",
   "templateKind": "cms-drupal",
-  "identity": {"name": "Example Drupal Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "cms", "stack": ["drupal", "php", "database", "views", "jsonapi"], "integrationMode": "static-or-bridge", "servingNotes": ["Generate knowledge from published nodes, taxonomies, menus and media only.", "Use JSON:API or a custom module for agent-safe content discovery."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-layer/manifest"], "llmContext": ["/llms.txt", "/ai/drupal/content-summary.txt"], "openapi": "/agent-layer/openapi.json", "mcp": "/agent-layer/mcp"},
+  "identity": {
+    "name": "Example Drupal Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "cms",
+    "stack": [
+      "drupal",
+      "php",
+      "database",
+      "views",
+      "jsonapi"
+    ],
+    "integrationMode": "static-or-bridge",
+    "servingNotes": [
+      "Generate knowledge from published nodes, taxonomies, menus and media only.",
+      "Use JSON:API or a custom module for agent-safe content discovery."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-layer/manifest"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/drupal/content-summary.txt"
+    ],
+    "openapi": "/agent-layer/openapi.json",
+    "mcp": "/agent-layer/mcp"
+  },
   "knowledge": [
-    {"id": "nodes", "type": "content-catalog", "source": "/jsonapi/node", "refresh": "on content publish"},
-    {"id": "taxonomy", "type": "taxonomy-catalog", "source": "/jsonapi/taxonomy_term", "refresh": "on taxonomy update"},
-    {"id": "menus", "type": "navigation-catalog", "source": "/ai/drupal/menus.json", "refresh": "on menu update"}
+    {
+      "id": "nodes",
+      "type": "content-catalog",
+      "source": "/jsonapi/node",
+      "refresh": "on content publish"
+    },
+    {
+      "id": "taxonomy",
+      "type": "taxonomy-catalog",
+      "source": "/jsonapi/taxonomy_term",
+      "refresh": "on taxonomy update"
+    },
+    {
+      "id": "menus",
+      "type": "navigation-catalog",
+      "source": "/ai/drupal/menus.json",
+      "refresh": "on menu update"
+    }
   ],
   "capabilities": [
-    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["jsonapi", "static"], "audit": ["query"]},
-    {"id": "read-content-item", "intent": "read_public_content_item", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["jsonapi"], "audit": ["entity_id"]},
-    {"id": "submit-webform", "intent": "submit_form_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["custom-module", "webform-adapter"], "audit": ["form_id", "input_summary", "user_confirmation"]}
+    {
+      "id": "search-content",
+      "name": "Search content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-content",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "jsonapi"
+        },
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-content.json",
+          "method": "GET",
+          "priority": 2,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "read-content-item",
+      "name": "Read content item",
+      "description": "Read public content item.",
+      "intent": "read_public_content_item",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/read-content-item",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "jsonapi"
+        }
+      ],
+      "audit": [
+        "entity_id"
+      ]
+    },
+    {
+      "id": "submit-webform",
+      "name": "Submit webform",
+      "description": "Submit form request.",
+      "intent": "submit_form_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-webform.input.json",
+      "outputSchema": "/ai/schemas/submit-webform.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-webform",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "custom-module"
+        }
+      ],
+      "audit": [
+        "form_id",
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Webform submissions require confirmation of the submitted summary.", "auth": "Editorial, draft and user-specific content require authenticated context.", "dataMinimization": "Exclude unpublished revisions, private files and admin routes.", "audit": "State-changing submissions should be logged outside public content indexes."},
-  "extensionPoints": ["drupal-module.md", "jsonapi-mapping.json", "webform-adapter.md", "content-access-policy.json"]
+  "policies": {
+    "consent": "Webform submissions require confirmation of the submitted summary.",
+    "auth": "Editorial, draft and user-specific content require authenticated context.",
+    "dataMinimization": "Exclude unpublished revisions, private files and admin routes.",
+    "audit": "State-changing submissions should be logged outside public content indexes."
+  },
+  "extensionPoints": [
+    "drupal-module.md",
+    "jsonapi-mapping.json",
+    "webform-adapter.md",
+    "content-access-policy.json"
+  ]
 }
-

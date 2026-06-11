@@ -18,7 +18,7 @@ The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RE
 
 ## Abstract
 
-AgentManifest defines a JSON document that websites can publish to describe identity, trusted knowledge, agent-facing capabilities, protocol bindings, risk levels, consent requirements, authentication expectations, audit rules, and policies.
+AgentManifest defines a JSON document that websites can publish to describe identity, trusted knowledge, agent-facing capabilities, structured bindings, risk levels, consent requirements, authentication expectations, audit rules, and policies.
 
 The goal is to help AI agents understand what a website knows and what it can safely do before scraping, guessing from visual UI, or executing brittle browser automation.
 
@@ -33,8 +33,12 @@ An AgentManifest document declares:
 - the platform and integration mode,
 - discovery locations for the manifest and related resources,
 - trusted knowledge sources,
-- capabilities with risk, consent, state-change, protocol, and audit metadata,
+- capabilities with type, risk, consent, state-change, binding, and audit metadata,
 - policy expectations for consent, authentication, data minimization, and audit.
+
+Capabilities describe what a website can do and under which policy. Structured `bindings` describe how that capability can be accessed or executed, such as through HTML, static resources, HTTP, OpenAPI, MCP, or hosted checkout. OpenAPI operations and MCP tools are binding targets, not the whole capability contract.
+
+AgentManifest is vendor-neutral. Implementation frameworks may generate manifests and bindings, but the manifest does not require any specific generator or expose implementation ownership as a normative field.
 
 ## Discovery
 
@@ -62,7 +66,7 @@ Capabilities declare a risk level of `low`, `medium`, `high`, or `critical`.
 
 Low-risk capabilities are public and read-only. Medium-risk capabilities submit data or start a workflow. High-risk capabilities modify user or business state. Critical capabilities include payments, orders, legal commitments, destructive actions, or irreversible operations.
 
-High and critical actions MUST require explicit confirmation and audit. Critical actions MUST set `stateChange` to `true` and `requiresConsent` to `true`.
+High and critical actions MUST require explicit confirmation and audit. Critical actions MUST set `stateChange` to `true`, `requiresConsent` to `true`, and `consentMode` to `explicit`, `step_up`, or `human_review`.
 
 ## Security
 

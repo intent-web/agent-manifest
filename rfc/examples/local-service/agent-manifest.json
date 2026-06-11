@@ -13,7 +13,10 @@
   },
   "platform": {
     "type": "service-business-website",
-    "stack": ["static-site", "contact-api"],
+    "stack": [
+      "static-site",
+      "contact-api"
+    ],
     "integrationMode": "static-or-bridge",
     "servingNotes": [
       "Keep service descriptions public and read-only.",
@@ -21,8 +24,13 @@
     ]
   },
   "discovery": {
-    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
-    "llmContext": ["/llms.txt"],
+    "recommendedLocations": [
+      "/.well-known/agent.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt"
+    ],
     "openapi": "/ai/openapi.json"
   },
   "knowledge": [
@@ -42,21 +50,71 @@
   "capabilities": [
     {
       "id": "search-services",
+      "name": "Search services",
+      "description": "Find public information.",
       "intent": "find_public_information",
+      "type": "query",
       "risk": "low",
       "stateChange": false,
+      "consentMode": "none",
       "requiresConsent": false,
-      "protocols": ["static", "openapi"],
-      "audit": ["query", "result_count"]
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-services.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "findPublicInformation",
+          "priority": 2,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "query",
+        "result_count"
+      ]
     },
     {
       "id": "request-appointment",
+      "name": "Request appointment",
+      "description": "Submit appointment request.",
       "intent": "submit_appointment_request",
+      "type": "action",
       "risk": "medium",
       "stateChange": true,
+      "consentMode": "explicit",
       "requiresConsent": true,
-      "protocols": ["openapi"],
-      "audit": ["input_summary", "user_confirmation", "timestamp"]
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/request-appointment.input.json",
+      "outputSchema": "/ai/schemas/request-appointment.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "submitAppointmentRequest",
+          "priority": 1,
+          "schemaMode": "external"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation",
+        "timestamp"
+      ]
     }
   ],
   "policies": {
@@ -65,5 +123,8 @@
     "dataMinimization": "Collect only contact and scheduling information required to respond.",
     "audit": "Store request summaries and confirmation timestamps for submitted requests."
   },
-  "extensionPoints": ["openapi.example.json", "policy.example.json"]
+  "extensionPoints": [
+    "openapi.example.json",
+    "policy.example.json"
+  ]
 }

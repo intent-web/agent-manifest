@@ -13,7 +13,10 @@
   },
   "platform": {
     "type": "static-website",
-    "stack": ["html", "static-json"],
+    "stack": [
+      "html",
+      "static-json"
+    ],
     "integrationMode": "static",
     "servingNotes": [
       "Serve the manifest as JSON from the well-known location.",
@@ -21,8 +24,12 @@
     ]
   },
   "discovery": {
-    "recommendedLocations": ["/.well-known/agent.json"],
-    "llmContext": ["/llms.txt"]
+    "recommendedLocations": [
+      "/.well-known/agent.json"
+    ],
+    "llmContext": [
+      "/llms.txt"
+    ]
   },
   "knowledge": [
     {
@@ -36,12 +43,26 @@
     {
       "id": "read-site-summary",
       "name": "Read site summary",
+      "description": "Understand organization.",
       "intent": "understand_organization",
+      "type": "resource",
       "risk": "low",
       "stateChange": false,
+      "consentMode": "none",
       "requiresConsent": false,
-      "protocols": ["static"],
-      "audit": ["request_id"]
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/read-site-summary.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "request_id"
+      ]
     }
   ],
   "policies": {

@@ -3,19 +3,168 @@
   "id": "contentful-headless-cms",
   "status": "example",
   "templateKind": "headless-cms-contentful",
-  "identity": {"name": "Example Contentful Site", "domain": "example.com", "owner": "Example Organization", "contact": "content@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "headless-cms", "stack": ["contentful", "delivery-api", "frontend"], "integrationMode": "static-or-runtime", "servingNotes": ["Publish manifest on the rendered website or edge/frontend app.", "Use delivery API content, not preview API content, for public agent knowledge."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/contentful/content-summary.txt"], "openapi": "/ai/contentful/openapi.json", "mcp": "/ai/contentful/mcp"},
+  "identity": {
+    "name": "Example Contentful Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "content@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "headless-cms",
+    "stack": [
+      "contentful",
+      "delivery-api",
+      "frontend"
+    ],
+    "integrationMode": "static-or-runtime",
+    "servingNotes": [
+      "Publish manifest on the rendered website or edge/frontend app.",
+      "Use delivery API content, not preview API content, for public agent knowledge."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/contentful/content-summary.txt"
+    ],
+    "openapi": "/ai/contentful/openapi.json",
+    "mcp": "/ai/contentful/mcp"
+  },
   "knowledge": [
-    {"id": "content-model", "type": "content-model-catalog", "source": "/ai/contentful/content-model.json", "refresh": "on model publish"},
-    {"id": "entries", "type": "content-catalog", "source": "/ai/contentful/entries.json", "refresh": "on entry publish"},
-    {"id": "locales", "type": "localization-context", "source": "/ai/contentful/locales.json", "refresh": "on locale change"}
+    {
+      "id": "content-model",
+      "type": "content-model-catalog",
+      "source": "/ai/contentful/content-model.json",
+      "refresh": "on model publish"
+    },
+    {
+      "id": "entries",
+      "type": "content-catalog",
+      "source": "/ai/contentful/entries.json",
+      "refresh": "on entry publish"
+    },
+    {
+      "id": "locales",
+      "type": "localization-context",
+      "source": "/ai/contentful/locales.json",
+      "refresh": "on locale change"
+    }
   ],
   "capabilities": [
-    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static", "delivery-api"], "audit": ["query", "content_type"]},
-    {"id": "read-entry", "intent": "read_public_content_entry", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["delivery-api"], "audit": ["entry_id", "locale"]},
-    {"id": "submit-contact", "intent": "submit_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["frontend-api", "serverless-action-gateway"], "audit": ["input_summary", "user_confirmation"]}
+    {
+      "id": "search-content",
+      "name": "Search content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        },
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/search-content",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 2,
+          "schemaMode": "none",
+          "sourceAdapter": "delivery-api"
+        }
+      ],
+      "audit": [
+        "query",
+        "content_type"
+      ]
+    },
+    {
+      "id": "read-entry",
+      "name": "Read entry",
+      "description": "Read public content entry.",
+      "intent": "read_public_content_entry",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/read-entry",
+          "method": "GET",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "none",
+          "sourceAdapter": "delivery-api"
+        }
+      ],
+      "audit": [
+        "entry_id",
+        "locale"
+      ]
+    },
+    {
+      "id": "submit-contact",
+      "name": "Submit contact",
+      "description": "Submit contact request.",
+      "intent": "submit_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-contact.input.json",
+      "outputSchema": "/ai/schemas/submit-contact.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-contact",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "frontend-api"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Contact or lead actions require explicit confirmation.", "auth": "Preview, management and editorial APIs require authenticated editorial context.", "dataMinimization": "Do not expose preview tokens, management tokens or unpublished entries.", "audit": "State-changing frontend/serverless actions require audit logs."},
-  "extensionPoints": ["contentful-delivery-mapping.md", "content-model-export.json", "preview-access-policy.json", "serverless-actions.md"]
+  "policies": {
+    "consent": "Contact or lead actions require explicit confirmation.",
+    "auth": "Preview, management and editorial APIs require authenticated editorial context.",
+    "dataMinimization": "Do not expose preview tokens, management tokens or unpublished entries.",
+    "audit": "State-changing frontend/serverless actions require audit logs."
+  },
+  "extensionPoints": [
+    "contentful-delivery-mapping.md",
+    "content-model-export.json",
+    "preview-access-policy.json",
+    "serverless-actions.md"
+  ]
 }

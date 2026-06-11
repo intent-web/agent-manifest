@@ -33,6 +33,10 @@ IntentWeb and the Agent Layer Framework are documented in separate
 repositories. This repository focuses only on **AgentManifest as the draft
 contract**.
 
+AgentManifest is vendor-neutral. AgentLayer Framework may generate manifests and
+bindings, but the manifest does not require AgentLayer and does not expose
+implementation ownership as a normative field.
+
 ## Specification
 
 The Internet-Draft-style specification package lives under [`rfc/`](./rfc/):
@@ -99,11 +103,12 @@ acts:
 | **Identity** | Who owns this website? | Organization, domain, contacts, legal entity |
 | **Knowledge** | What sources are trusted? | Pages, docs, catalogs, FAQs, policies, product data |
 | **Capabilities** | What can the agent do? | Search products, request an offer, check availability, prepare a cart |
-| **Protocols** | How can tools be called? | Static files, OpenAPI, MCP, webhooks, custom APIs |
+| **Bindings** | How can capabilities be accessed or executed? | HTML, static resources, HTTP, OpenAPI, MCP, hosted checkout |
 | **Risk & policy** | What are the rules? | Consent, authentication, audit, rate limits, human review |
 
-This makes AgentManifest both technical and semantic. It describes **how** to
-call something and **what it means** for the user and the business.
+This makes AgentManifest both technical and semantic. It describes **what** a
+capability means for the user and the business, and **how** an agent can access
+or execute it through bindings.
 
 ## Capability, Not Just Endpoint
 
@@ -132,23 +137,37 @@ The exact schema is expected to evolve, but an AgentManifest may look like this:
 
 ```json
 {
-  "agentManifestVersion": "0.1",
+  "agentManifestVersion": "0.1-draft",
+  "id": "example-store",
+  "status": "example",
+  "templateKind": "ecommerce",
   "identity": {
     "name": "Example Store",
     "domain": "example.com",
     "owner": "Example Inc.",
     "contact": "support@example.com"
   },
+  "platform": {
+    "type": "ecommerce-website",
+    "stack": ["commerce-platform", "openapi", "mcp"],
+    "integrationMode": "bridge-or-runtime",
+    "servingNotes": ["Expose public product data and govern state-changing actions server-side."]
+  },
+  "discovery": {
+    "recommendedLocations": ["/.well-known/agent.json", "/agent-manifest.json"],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
   "knowledge": [
     {
-      "type": "catalog",
-      "name": "Product catalog",
-      "url": "https://example.com/ai/catalog.json"
+      "id": "product-catalog",
+      "type": "product-catalog",
+      "source": "/ai/catalog.json"
     },
     {
+      "id": "returns-policy",
       "type": "policy",
-      "name": "Returns policy",
-      "url": "https://example.com/returns"
+      "source": "/returns"
     }
   ],
   "capabilities": [
@@ -157,21 +176,46 @@ The exact schema is expected to evolve, but an AgentManifest may look like this:
       "name": "Request an offer",
       "description": "Submit customer requirements and create a sales inquiry.",
       "intent": "request_commercial_offer",
+      "type": "action",
       "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
       "requiresConsent": true,
       "requiresAuthentication": false,
-      "protocols": {
-        "openapi": "https://example.com/ai/openapi.json"
-      },
-      "audit": {
-        "required": true,
-        "records": ["input_summary", "user_confirmation", "timestamp"]
-      }
+      "inputSchema": "/ai/schemas/request-offer.input.json",
+      "outputSchema": "/ai/schemas/request-offer.output.json",
+      "bindings": [
+        {
+          "kind": "openapi",
+          "spec": "/ai/openapi.json",
+          "operationId": "requestOffer",
+          "priority": 1,
+          "schemaMode": "external"
+        },
+        {
+          "kind": "mcp",
+          "server": "/ai/mcp",
+          "tool": "request_offer",
+          "priority": 2,
+          "schemaMode": "external"
+        },
+        {
+          "kind": "html",
+          "url": "/contact",
+          "method": "GET",
+          "priority": 99,
+          "fallbackOnly": true,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": ["input_summary", "user_confirmation", "timestamp"]
     }
   ],
   "policies": {
     "consent": "Consent must be tied to a specific action, input, user and time.",
-    "dataUse": "Only collect fields required for the selected capability."
+    "auth": "Customer-specific workflows require authenticated context.",
+    "dataMinimization": "Only collect fields required for the selected capability.",
+    "audit": "State-changing actions must record confirmation and correlation IDs."
   }
 }
 ```
@@ -204,7 +248,7 @@ AgentManifest-enabled flow:
 4. It checks that the action is medium risk and requires consent.
 5. It prepares a clear summary of the request.
 6. It asks the user to confirm the exact data that will be submitted.
-7. It executes the action through the declared protocol.
+7. It executes the action through the selected binding.
 8. It returns the result and audit reference.
 
 The user stays in control. The business gets structured, auditable automation.

@@ -182,7 +182,7 @@ This manifest represents a Django app.
 It contains:
 
 - URL, public model and form catalogs,
-- Django view or Django REST Framework protocols,
+- Django view or Django REST Framework binding patterns,
 - public content search,
 - form submission,
 - high-risk workflow start through a task queue such as Celery,
@@ -214,7 +214,7 @@ This manifest represents an Express/Node.js website or API.
 It contains:
 
 - route, public data and form catalogs,
-- Express route and static protocols,
+- Express route and static binding patterns,
 - public data search,
 - contact submission,
 - high-risk workflow triggering through a queue,
@@ -263,7 +263,7 @@ This manifest represents ASP.NET Core MVC or Razor Pages.
 It contains:
 
 - route, public data and form catalogs,
-- MVC controller/action protocols,
+- MVC controller/action binding patterns,
 - public site search,
 - contact submission,
 - high-risk business workflow start,
@@ -299,4 +299,3 @@ Good next files for framework examples:
 - `auth-policy.json` for protected capabilities.
 - `audit-middleware.md` for logging state-changing actions.
 - `catalog-generation.md` for route, content and form catalogs.
-

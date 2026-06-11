@@ -3,20 +3,155 @@
   "id": "react-vite-site",
   "status": "example",
   "templateKind": "framework-react-vite",
-  "identity": {"name": "Example React Vite Site", "domain": "example.com", "owner": "Example Organization", "contact": "web@example.com", "jurisdiction": "TODO"},
-  "platform": {"type": "frontend-framework", "stack": ["react", "vite", "static-hosting-or-spa"], "integrationMode": "static", "servingNotes": ["Generate manifest files into dist during Vite build.", "Configure SPA fallback exceptions for /.well-known and /ai paths."]},
-  "discovery": {"recommendedLocations": ["/.well-known/agent-manifest.json", "/agent-manifest.json"], "llmContext": ["/llms.txt", "/ai/react/site-summary.txt"], "openapi": "/ai/openapi.json", "mcp": "/ai/mcp"},
+  "identity": {
+    "name": "Example React Vite Site",
+    "domain": "example.com",
+    "owner": "Example Organization",
+    "contact": "web@example.com",
+    "jurisdiction": "TODO"
+  },
+  "platform": {
+    "type": "frontend-framework",
+    "stack": [
+      "react",
+      "vite",
+      "static-hosting-or-spa"
+    ],
+    "integrationMode": "static",
+    "servingNotes": [
+      "Generate manifest files into dist during Vite build.",
+      "Configure SPA fallback exceptions for /.well-known and /ai paths."
+    ]
+  },
+  "discovery": {
+    "recommendedLocations": [
+      "/.well-known/agent-manifest.json",
+      "/agent-manifest.json"
+    ],
+    "llmContext": [
+      "/llms.txt",
+      "/ai/react/site-summary.txt"
+    ],
+    "openapi": "/ai/openapi.json",
+    "mcp": "/ai/mcp"
+  },
   "knowledge": [
-    {"id": "routes", "type": "route-catalog", "source": "/ai/react/routes.json", "refresh": "on build"},
-    {"id": "content", "type": "content-catalog", "source": "/ai/react/content.json", "refresh": "on build"},
-    {"id": "components", "type": "ui-capability-catalog", "source": "/ai/react/components.json", "refresh": "on build"}
+    {
+      "id": "routes",
+      "type": "route-catalog",
+      "source": "/ai/react/routes.json",
+      "refresh": "on build"
+    },
+    {
+      "id": "content",
+      "type": "content-catalog",
+      "source": "/ai/react/content.json",
+      "refresh": "on build"
+    },
+    {
+      "id": "components",
+      "type": "ui-capability-catalog",
+      "source": "/ai/react/components.json",
+      "refresh": "on build"
+    }
   ],
   "capabilities": [
-    {"id": "read-route-summary", "intent": "understand_public_route", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["route"]},
-    {"id": "search-content", "intent": "find_public_content", "risk": "low", "stateChange": false, "requiresConsent": false, "protocols": ["static"], "audit": ["query"]},
-    {"id": "submit-lead", "intent": "submit_lead_or_contact_request", "risk": "medium", "stateChange": true, "requiresConsent": true, "protocols": ["serverless-function", "external-api"], "audit": ["input_summary", "user_confirmation"]}
+    {
+      "id": "read-route-summary",
+      "name": "Read route summary",
+      "description": "Understand public route.",
+      "intent": "understand_public_route",
+      "type": "resource",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/read-route-summary.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "route"
+      ]
+    },
+    {
+      "id": "search-content",
+      "name": "Search content",
+      "description": "Find public content.",
+      "intent": "find_public_content",
+      "type": "query",
+      "risk": "low",
+      "stateChange": false,
+      "consentMode": "none",
+      "requiresConsent": false,
+      "requiresAuthentication": false,
+      "bindings": [
+        {
+          "kind": "static",
+          "url": "/ai/capabilities/search-content.json",
+          "method": "GET",
+          "priority": 1,
+          "schemaMode": "none"
+        }
+      ],
+      "audit": [
+        "query"
+      ]
+    },
+    {
+      "id": "submit-lead",
+      "name": "Submit lead",
+      "description": "Submit lead or contact request.",
+      "intent": "submit_lead_or_contact_request",
+      "type": "action",
+      "risk": "medium",
+      "stateChange": true,
+      "consentMode": "explicit",
+      "requiresConsent": true,
+      "requiresAuthentication": false,
+      "inputSchema": "/ai/schemas/submit-lead.input.json",
+      "outputSchema": "/ai/schemas/submit-lead.output.json",
+      "enforcement": {
+        "inputValidation": "server",
+        "policy": "server",
+        "consent": "server",
+        "auth": "none",
+        "audit": true,
+        "idempotency": true
+      },
+      "bindings": [
+        {
+          "kind": "http",
+          "endpoint": "/api/agent/submit-lead",
+          "method": "POST",
+          "contentType": "application/json",
+          "priority": 1,
+          "schemaMode": "inherits",
+          "sourceAdapter": "serverless-function"
+        }
+      ],
+      "audit": [
+        "input_summary",
+        "user_confirmation"
+      ]
+    }
   ],
-  "policies": {"consent": "Lead or contact submissions require confirmation.", "auth": "Authenticated APIs require delegated user auth and must not be implied by static manifest data.", "dataMinimization": "Do not expose Vite private environment values or internal build metadata.", "audit": "Backend or serverless handlers must audit state-changing actions."},
-  "extensionPoints": ["vite-plugin-react.md", "spa-fallback-policy.md", "component-capability-catalog.json", "serverless-openapi.json"]
+  "policies": {
+    "consent": "Lead or contact submissions require confirmation.",
+    "auth": "Authenticated APIs require delegated user auth and must not be implied by static manifest data.",
+    "dataMinimization": "Do not expose Vite private environment values or internal build metadata.",
+    "audit": "Backend or serverless handlers must audit state-changing actions."
+  },
+  "extensionPoints": [
+    "vite-plugin-react.md",
+    "spa-fallback-policy.md",
+    "component-capability-catalog.json",
+    "serverless-openapi.json"
+  ]
 }
-
