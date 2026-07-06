@@ -145,6 +145,22 @@
       "requiresAuthentication": true,
       "inputSchema": "/ai/schemas/place-order.input.json",
       "outputSchema": "/ai/schemas/place-order.output.json",
+      "authorization": {
+        "authProfiles": [
+          "customer-session",
+          "hosted-checkout-confirmation"
+        ],
+        "consentMode": "provider_confirmed",
+        "idempotencyRequired": true,
+        "auditRequired": true,
+        "consentBinding": [
+          "capabilityId",
+          "inputHash",
+          "userOrSession",
+          "timestamp",
+          "protocolInvocation"
+        ]
+      },
       "enforcement": {
         "inputValidation": "server",
         "policy": "server",
@@ -162,6 +178,9 @@
           "schemaMode": "external"
         }
       ],
+      "protocols": [
+        "hosted-checkout"
+      ],
       "audit": [
         "order_summary",
         "explicit_approval",
@@ -176,6 +195,20 @@
     "dataMinimization": "Expose only public product data and collect only checkout fields required for fulfillment.",
     "audit": "Critical order actions require immutable audit records."
   },
+  "authProfiles": [
+    {
+      "id": "customer-session",
+      "type": "session",
+      "maxRisk": "critical",
+      "description": "Authenticated customer session used for checkout-specific operations."
+    },
+    {
+      "id": "hosted-checkout-confirmation",
+      "type": "hosted-confirmation",
+      "maxRisk": "critical",
+      "description": "Provider-controlled checkout confirmation surface."
+    }
+  ],
   "extensionPoints": [
     "openapi.example.json",
     "mcp-server.example.json",

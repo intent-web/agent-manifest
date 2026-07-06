@@ -16,6 +16,28 @@ A malicious manifest may claim ownership of another domain, understate risk, req
 
 Capabilities should be narrow and auditable. Avoid broad declarations such as `manage_account` or `perform_admin_action`. Split high-impact workflows into specific steps with clear consent boundaries.
 
+Agents should not receive general authority over a user account. A runtime may allow an agent to invoke a bounded capability, but that authority should be scoped to the declared capability, policy, consent boundary, and protocol invocation.
+
+## Delegated Invocation
+
+Delegated invocation should be bounded by capability, input summary or input hash, user or user session, timestamp, expiration, and intended protocol invocation.
+
+Runtime systems should enforce least privilege and narrow capability scopes. A delegated grant or runtime decision should not silently expand from one declared capability to unrelated account access, administrative operations, private data export, or future transactions.
+
+For state-changing actions, runtimes should pair delegated invocation with server-side authorization, validation, idempotency or duplicate transaction controls where appropriate, replay protection, and durable audit.
+
+## Consent Is Not Authorization
+
+Consent proves user approval for a specific invocation. Authorization proves that the authenticated subject is permitted to execute that invocation. They are different controls and neither one replaces the other.
+
+Sensitive state-changing actions should require both consent and authorization. Consent should be bound to the capability ID, input summary or input hash, user or user session, timestamp, intended protocol invocation, and expiration when applicable. Consent should not become a broad permanent authorization for unrelated actions.
+
+## Provider-Controlled Confirmation
+
+Critical actions such as payments, orders, legal commitments, account deletion, destructive operations, and regulated workflows should use provider-controlled confirmation or step-up authentication when available.
+
+Agent-side summaries are useful for user understanding and audit context, but they should not replace provider-side confirmation for critical operations when a provider-controlled confirmation surface exists.
+
 ## Binding Trust
 
 Bindings are untrusted until the manifest is validated and the binding target is checked against the publisher origin, expected transport security, and capability-level safety rules. A binding must not weaken the capability-level `risk`, `stateChange`, `consentMode`, `requiresConsent`, `requiresAuthentication`, or enforcement requirements.

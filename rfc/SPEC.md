@@ -136,6 +136,7 @@ The schema is normative for structural validation in this draft. This prose spec
 | --- | --- | --- |
 | `$schema` | string | JSON Schema URI or relative path. |
 | `extensionPoints` | array | Related files such as OpenAPI, MCP, catalogs, policy documents, and validation reports. |
+| `authProfiles` | array | Optional authentication or delegated authorization profiles supported by the publisher. |
 
 Additional properties MAY be present. Agents SHOULD ignore unknown properties they do not understand.
 
@@ -213,7 +214,7 @@ Each capability MUST include:
 | `requiresAuthentication` | boolean | Whether authenticated user context is required. |
 | `bindings` | array | One or more concrete access or execution bindings. |
 
-Capabilities MAY include `inputSchema`, `outputSchema`, `enforcement`, `audit`, and extension fields.
+Capabilities MAY include `inputSchema`, `outputSchema`, `authorization`, `enforcement`, `audit`, and extension fields.
 
 Core capability `type` values are:
 
@@ -255,9 +256,35 @@ Core `consentMode` values are:
 | `step_up` | The action requires stronger confirmation, re-authentication, or additional verification. |
 | `human_review` | The action requires human approval or review before completion. |
 
-Consent MUST be specific to a capability, input summary, user or user session, timestamp, and intended binding invocation. Consent MUST NOT be treated as a general permanent authorization for unrelated actions.
+Consent MUST be specific to a capability, input summary or input hash, user or user session, timestamp, and intended protocol invocation. Consent MUST include an expiration when applicable. Consent MUST NOT be treated as a permanent authorization for unrelated actions.
+
+Consent SHOULD be short-lived for state-changing actions. Critical actions SHOULD use step-up authentication or provider-controlled confirmation.
 
 For medium, high, and critical risk actions, agents SHOULD present a concise user-visible summary before invocation. High and critical actions MUST be auditable.
+
+## Authentication, Authorization, and Delegated Invocation
+
+AgentManifest declares security expectations; protocol endpoints enforce them.
+
+Authentication identifies the user, agent, client application, organization, or other subject. Authorization determines whether an authenticated subject is allowed to invoke a capability. Consent confirms that the user approved a specific capability invocation. Audit records what was requested, approved, executed, and returned.
+
+Consent MUST NOT be treated as authorization, and authorization MUST NOT be treated as consent. Consent proves approval for a specific invocation. Authorization proves permission to execute that invocation. Sensitive state-changing actions generally require both.
+
+An agent MUST NOT receive general authority over a user account. It MAY receive a bounded, auditable authorization to invoke a specific capability under explicit policy and consent constraints.
+
+A manifest MAY describe authentication, authorization, and consent expectations. Server-side protocol endpoints MUST enforce authorization, consent, input validation, replay protection, duplicate transaction controls, idempotency where appropriate, rate limits, audit, and policy checks.
+
+Agents MUST NOT request or handle user passwords unless the publisher explicitly exposes a secure delegated authentication flow. Agents SHOULD prefer delegated authorization flows, provider-controlled confirmation pages, hosted checkout, passkeys, enterprise SSO, managed identity, or similar mechanisms for high and critical actions. Critical capabilities SHOULD NOT be completed solely through agent-side confirmation when a provider-controlled confirmation surface is available.
+
+In v0.1-draft, AgentManifest declares requirements and expectations. Specific token formats, OAuth profiles, consent receipts, invocation grants, Demonstrating Proof-of-Possession (DPoP), passkeys, managed identity, enterprise SSO mechanisms, and similar protocol details are intentionally left to protocol bindings and later drafts.
+
+## Recommended Prepare, Consent, and Commit Pattern
+
+This subsection is informative. High and critical capabilities SHOULD be split into prepare, consent, and commit steps when the implementation supports such a workflow. This pattern is not required for all v0.1-draft implementations.
+
+1. Prepare or preview validates input without committing irreversible state. It returns a user-visible summary and, when applicable, the risk, `capabilityId`, `correlationId`, data shared, payment or obligation information, `inputHash`, and `expiresAt`.
+2. Consent obtains explicit user approval for the prepared invocation. For critical actions, consent should use provider-controlled confirmation or step-up authentication where available.
+3. Commit executes only if authentication, authorization, policy, consent, validation, idempotency, replay protection, duplicate transaction controls, and audit checks pass server-side.
 
 ## Bindings
 
@@ -332,6 +359,23 @@ Binding implementations SHOULD return an action result envelope for state-changi
 
 The envelope is informative for v0.1-draft and is expected to become more precise in later drafts.
 
+Informative example of a response that requires explicit consent before commit:
+
+```json
+{
+  "status": "requires_consent",
+  "capabilityId": "place_order",
+  "risk": "critical",
+  "summary": "Order 4 alloy wheels for 2059 PLN.",
+  "inputHash": "sha256:...",
+  "correlationId": "act_123",
+  "consentUrl": "https://shop.example.com/ai/consent/act_123",
+  "expiresAt": "2026-06-16T12:15:00Z"
+}
+```
+
+Possible future envelope statuses include `accepted`, `completed`, `error`, `requires_auth`, `requires_consent`, `requires_step_up`, and `requires_human_review`. These statuses are informative for v0.1-draft.
+
 ## Error Handling
 
 Agents and binding implementations SHOULD use explicit error responses. Errors SHOULD include a stable error code, a human-readable message, and a correlation ID when possible.
@@ -352,13 +396,15 @@ Example:
 
 ## Security Considerations
 
-Manifest publishers MUST NOT expose secrets, private credentials, internal tokens, admin-only endpoints, or unsafe privileged operations in public manifests.
+Manifests are public and MUST be treated as untrusted input until validated and bound to the origin from which they were discovered.
 
-High and critical risk capabilities MUST require explicit user confirmation. Critical capabilities SHOULD require authentication appropriate to the action.
+Public manifests MUST NOT expose secrets, bearer tokens, private endpoints, internal hostnames, admin-only operations, privileged implementation details, private credentials, internal tokens, or unsafe privileged operations.
 
-Servers MUST enforce authorization, validation, rate limits, replay protection, duplicate transaction controls, consent checks, and audit requirements outside the prompt. A manifest can describe policy, but prompt text alone is not enforcement.
+Prompt text is not a security boundary. State-changing protocol endpoints MUST enforce authorization, consent, validation, rate limits, replay protection, duplicate transaction controls, idempotency where appropriate, and audit server-side.
 
-Agents MUST treat manifests as untrusted input until validated and contextualized. A malicious manifest could overstate authority, hide risk, request credentials, or direct an agent to attacker-controlled endpoints.
+High and critical actions MUST require explicit confirmation and audit. Critical capabilities SHOULD require authentication appropriate to the action. Critical capabilities SHOULD use provider-controlled confirmation or step-up authentication where available.
+
+A malicious manifest could overstate authority, hide risk, request credentials, or direct an agent to attacker-controlled endpoints. Agents and runtimes SHOULD reject or downgrade capabilities that conflict with origin, transport, authentication, consent, authorization, or policy expectations.
 
 ## Privacy Considerations
 

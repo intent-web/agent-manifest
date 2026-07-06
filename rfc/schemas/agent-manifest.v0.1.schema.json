@@ -70,6 +70,13 @@
     "policies": {
       "$ref": "#/$defs/policies"
     },
+    "authProfiles": {
+      "type": "array",
+      "description": "Optional authentication or delegated authorization profiles supported by the publisher.",
+      "items": {
+        "$ref": "#/$defs/authProfile"
+      }
+    },
     "extensionPoints": {
       "type": "array",
       "description": "Optional related files, documents, catalogs, schemas, OpenAPI descriptions, MCP descriptions, policy documents, validation reports, or implementation notes.",
@@ -288,6 +295,10 @@
           "$ref": "#/$defs/enforcement",
           "description": "Declared enforcement expectations for validation, policy, consent, authentication, audit, and idempotency."
         },
+        "authorization": {
+          "$ref": "#/$defs/capabilityAuthorization",
+          "description": "Optional authorization, consent, and runtime enforcement metadata for this capability."
+        },
         "bindings": {
           "type": "array",
           "minItems": 1,
@@ -459,6 +470,68 @@
         },
         "idempotency": {
           "type": "boolean"
+        }
+      }
+    },
+    "authProfile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "type"],
+      "description": "Authentication or delegated authorization profile supported by the publisher.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Profile type such as none, session, oauth2, oidc, hosted-confirmation, enterprise-sso, managed-identity, or extension-specific values."
+        },
+        "maxRisk": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "capabilityAuthorization": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional authorization, consent, and runtime enforcement metadata for this capability.",
+      "properties": {
+        "authProfiles": {
+          "type": "array",
+          "description": "Authentication or delegated authorization profiles that may satisfy this capability.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "consentMode": {
+          "type": "string",
+          "enum": ["none", "explicit", "step_up", "human_review", "provider_confirmed"],
+          "description": "Suggested consent mode for this capability."
+        },
+        "idempotencyRequired": {
+          "type": "boolean",
+          "description": "Whether invocation should include duplicate transaction protection such as an idempotency key."
+        },
+        "auditRequired": {
+          "type": "boolean",
+          "description": "Whether durable audit is required for this capability."
+        },
+        "consentBinding": {
+          "type": "array",
+          "description": "Fields to which consent should be bound, such as capabilityId, inputHash, userOrSession, timestamp, and protocolInvocation.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         }
       }
     },

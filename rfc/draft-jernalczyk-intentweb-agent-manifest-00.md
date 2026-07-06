@@ -68,6 +68,8 @@ Low-risk capabilities are public and read-only. Medium-risk capabilities submit 
 
 High and critical actions MUST require explicit confirmation and audit. Critical actions MUST set `stateChange` to `true`, `requiresConsent` to `true`, and `consentMode` to `explicit`, `step_up`, or `human_review`.
 
+AgentManifest declares authentication, authorization, consent, audit, and policy expectations. Protocol endpoints are responsible for enforcement. Consent must be specific to a capability invocation and must not be treated as broad permanent authorization. Critical actions should use appropriate authentication, explicit confirmation, audit, replay protection, and duplicate transaction controls.
+
 ## Security
 
 Manifests and related public files MUST NOT expose secrets, private tokens, unpublished data, private customer information, admin-only endpoints, or privileged internal operations.
